@@ -9,8 +9,8 @@ const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
-const utils = require(`./utils/util.js`);
-const Logger = require(`./utils/logger.js`);
+const utils = require(`../utils/util.js`);
+const Logger = require(`../utils/logger.js`);
 
 // Config
 const {srcPath} = require(`${cwd}/config/main.js`);

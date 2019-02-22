@@ -11,8 +11,8 @@ const fs = require('fs-extra');
 const minifyCss = require('clean-css');
 const minifyHtml = require('html-minifier').minify;
 const minifyEs = require('uglify-es');
-const utils = require(`./utils/util.js`);
-const Logger = require(`./utils/logger.js`);
+const utils = require(`../utils/util.js`);
+const Logger = require(`../utils/logger.js`);
 
 // Config
 const {srcPath,distPath} = require(`${cwd}/config/main.js`);

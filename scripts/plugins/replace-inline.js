@@ -8,8 +8,8 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
-const utils = require(`./utils/util.js`);
-const Logger = require(`./utils/logger.js`);
+const utils = require(`../utils/util.js`);
+const Logger = require(`../utils/logger.js`);
 
 // Config
 const {distPath} = require(`${cwd}/config/main.js`);
