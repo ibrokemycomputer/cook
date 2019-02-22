@@ -3,7 +3,7 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs');
-const utils = require(`./scripts/utils/util.js`);
+const utils = require(`./utils/util.js`);
 
 // PLUGINS
 // -----------------------------

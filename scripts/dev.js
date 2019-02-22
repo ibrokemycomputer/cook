@@ -4,7 +4,7 @@ const cwd = process.cwd();
 const browserSync = require('browser-sync').create('Dev Server');
 const chalk = require('chalk');
 const packageJSON = require('../package.json');
-const Logger = require(`./scripts/utils/logger.js`);
+const Logger = require(`./utils/logger.js`);
 const { exec } = require('child_process');
 
 // Config

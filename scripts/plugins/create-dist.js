@@ -9,7 +9,7 @@ const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
 const rimraf = require('rimraf');
-const Logger = require(`./scripts/utils/logger.js`);
+const Logger = require(`./utils/logger.js`);
 
 // Config
 const {distPath} = require(`${cwd}/config/main.js`);
