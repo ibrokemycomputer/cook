@@ -15,8 +15,11 @@ const Logger = require(`../utils/logger.js`);
 // Config
 const siteConfig = require(`${cwd}/siteConfig.json`);
 
-function replaceTemplateStrings() {
-  console.log(JSON.parse(siteConfig));
+async function replaceTemplateStrings({file}) {
+  
+  file.src = file.src.replace(/\$\{pageName\}/g, siteConfig.pages.index);
+
+  Logger.success(`${file.path} - Replaced [${'${pageName}'}] with [${siteConfig.pages.index}]`);
 }
 
 // EXPORT

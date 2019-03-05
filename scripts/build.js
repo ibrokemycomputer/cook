@@ -55,6 +55,9 @@ async function build() {
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
       // since `/src` doesn't exist in `/dist`
       replaceSrcPathForDev({file, allowType: ['.css','.html']});
+
+      // WIP PLUGIN: Replace all `${vars}` in file from value in siteConfig
+      replaceTemplateStrings({file});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});
@@ -70,7 +73,7 @@ async function build() {
       // Write new, modified source back to the file
       fs.writeFileSync(file.path, file.src);
 
-      replaceTemplateStrings();
+      replaceTemplateStrings({file});
       
     });
   });
