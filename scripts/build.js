@@ -45,10 +45,10 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
       
-      // PLUGIN: Replace all `[include]` in file
+      // PLUGIN: Replace all `[data-include]` in file
       replaceIncludes({file, allowType: ['.html']});
 
-      // PLUGIN: Inline all external `<link>` and `<script>` tags with `[inline]`
+      // PLUGIN: Inline all external `<link>` and `<script>` tags with `[data-inline]`
       replaceInline({file, allowType: ['.html']});
       // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
