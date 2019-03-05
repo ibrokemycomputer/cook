@@ -1,6 +1,6 @@
 /**
  * @file set-active-links.js
- * @description Add `[active]` state to `<a>` tags whose `[href]` value matches the current page
+ * @description Add `[data-active]` state to `<a>` tags whose `[href]` value matches the current page
  */
 
 // REQUIRE
@@ -57,7 +57,7 @@ function getComparisonPart(path) {
 function setActive({file, link}) {
   const currPath = getComparisonPart(file.path);
   const linkPath = getComparisonPart(link.href);
-  if (linkPath === currPath) link.setAttribute('active','');
+  if (linkPath === currPath) link.setAttribute('data-active','');
 }
 
 // EXPORT
