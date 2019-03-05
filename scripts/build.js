@@ -15,6 +15,7 @@ const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
 const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
+const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 
 // CONFIG
 const {convertPageToDirectory} = require(`${cwd}/config/main.js`);
@@ -68,6 +69,9 @@ async function build() {
       
       // Write new, modified source back to the file
       fs.writeFileSync(file.path, file.src);
+
+      replaceTemplateStrings();
+      
     });
   });
 };
