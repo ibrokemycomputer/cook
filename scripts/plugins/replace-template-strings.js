@@ -16,10 +16,13 @@ const Logger = require(`../utils/logger.js`);
 const siteConfig = require(`${cwd}/siteConfig.json`);
 
 async function replaceTemplateStrings({file}) {
-  
-  file.src = file.src.replace(/\$\{pageName\}/g, siteConfig.pages.index);
 
-  Logger.success(`${file.path} - Replaced [${'${pageName}'}] with [${siteConfig.pages.index}]`);
+  Object.keys(siteConfig).forEach((k) => {
+    const rgx = new RegExp('\\$\\{'+k+'\\}', 'g');
+    file.src = file.src.replace(rgx, siteConfig[k]);
+  });
+
+  Logger.success(`${file.path} - Replaced template strings`);
 }
 
 // EXPORT
