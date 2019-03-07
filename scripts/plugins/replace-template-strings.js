@@ -13,16 +13,20 @@ const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // Config
-const siteConfig = require(`${cwd}/siteConfig.json`);
 
-async function replaceTemplateStrings({file}) {
+const siteData = require(`${cwd}/config/siteData.js`);
+
+async function replaceTemplateStrings({file, allowType, disallowType}) {
+  // Early Exit: File type not allowed
+  const allowed = utils.isAllowedType({file,allowType,disallowType});
+  if (!allowed) return;
 
   const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
 
-  const siteConfigKeys = Object.keys(siteConfig);
-  const siteConfigValues = siteConfigKeys.map(i => siteConfig[i]);
+  const siteDataKeys = Object.keys(siteData);
+  const siteDataValues = siteDataKeys.map(i => siteData[i]);
 
-  const compiled = compile(file.src, siteConfigKeys)(...siteConfigValues);
+  const compiled = compile(file.src, siteDataKeys)(...siteDataValues);
 
   file.src = compiled;
 
