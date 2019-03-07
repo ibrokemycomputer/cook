@@ -17,10 +17,14 @@ const siteConfig = require(`${cwd}/siteConfig.json`);
 
 async function replaceTemplateStrings({file}) {
 
-  Object.keys(siteConfig).forEach((k) => {
-    const rgx = new RegExp('\\$\\{'+k+'\\}', 'g');
-    file.src = file.src.replace(rgx, siteConfig[k]);
-  });
+  const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
+
+  const siteConfigKeys = Object.keys(siteConfig);
+  const siteConfigValues = siteConfigKeys.map(i => siteConfig[i]);
+
+  const compiled = compile(file.src, siteConfigKeys)(...siteConfigValues);
+
+  file.src = compiled;
 
   Logger.success(`${file.path} - Replaced template strings`);
 }
