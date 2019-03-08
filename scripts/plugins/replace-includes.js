@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
+const decode = require('unescape');
 
 // Config
 const {distPath,srcPath} = require(`${cwd}/config/main.js`);
@@ -63,7 +64,7 @@ async function replaceIncludes({file, allowType, disallowType}) {
   });
 
   // Store updated file source
-  file.src = utils.setSrc({dom});
+  file.src = utils.setSrc({decode(dom)});
   
   // Query again for includes. If sub-includes found, run again
   dom = utils.jsdom.dom({src: file.src});

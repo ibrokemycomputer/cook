@@ -6,10 +6,8 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const chalk = require('chalk');
-const fs = require('fs-extra');
 const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const decode = require('unescape');
 
 // Config
 const {distPath} = require(`${cwd}/config/main.js`);
@@ -31,7 +29,7 @@ async function setActiveLinks({file, allowType, disallowType}) {
   $links.forEach((link,i) => setActive({file, link}));
 
   // Store updated file source
-  file.src = utils.setSrc({dom});
+  file.src = utils.setSrc({decode(dom)});
 }
 
 // HELPER METHODS
