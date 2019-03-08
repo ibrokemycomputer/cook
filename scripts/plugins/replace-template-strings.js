@@ -11,6 +11,8 @@ const fs = require('fs');
 const path = require('path');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
+const decode = require('ent/decode');
+
 
 // Config
 
@@ -26,7 +28,7 @@ async function replaceTemplateStrings({file, allowType, disallowType}) {
   const siteDataKeys = Object.keys(siteData);
   const siteDataValues = siteDataKeys.map(i => siteData[i]);
 
-  const compiled = compile(file.src, siteDataKeys)(...siteDataValues);
+  const compiled = compile(decode(file.src), siteDataKeys)(...siteDataValues);
 
   file.src = compiled;
 
