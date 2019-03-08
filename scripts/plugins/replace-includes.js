@@ -64,7 +64,7 @@ async function replaceIncludes({file, allowType, disallowType}) {
   });
 
   // Store updated file source
-  file.src = utils.setSrc({decode(dom)});
+  file.src = utils.setSrc(decode(dom));
   
   // Query again for includes. If sub-includes found, run again
   dom = utils.jsdom.dom({src: file.src});

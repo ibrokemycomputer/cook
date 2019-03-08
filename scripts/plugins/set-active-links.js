@@ -29,7 +29,7 @@ async function setActiveLinks({file, allowType, disallowType}) {
   $links.forEach((link,i) => setActive({file, link}));
 
   // Store updated file source
-  file.src = utils.setSrc({decode(dom)});
+  file.src = utils.setSrc(decode(dom));
 }
 
 // HELPER METHODS
