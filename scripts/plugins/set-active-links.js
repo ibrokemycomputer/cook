@@ -7,7 +7,8 @@
 // -----------------------------
 const cwd = process.cwd();
 const utils = require(`../utils/util.js`);
-const decode = require('unescape');
+const decode = require('ent/decode');
+
 
 // Config
 const {distPath} = require(`${cwd}/config/main.js`);

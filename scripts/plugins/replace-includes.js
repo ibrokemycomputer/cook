@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
-const decode = require('unescape');
+const decode = require('ent/decode');
 
 // Config
 const {distPath,srcPath} = require(`${cwd}/config/main.js`);

@@ -21,13 +21,13 @@
     "browser-sync": "^2.26.3",
     "chalk": "^2.4.1",
     "clean-css": "^4.2.1",
+    "ent": "^2.2.0",
     "fs-extra": "^7.0.1",
     "html-minifier": "^3.5.21",
     "http-server": "^0.11.1",
     "jsdom": "^13.2.0",
     "rimraf": "^2.6.2",
-    "uglify-es": "^3.3.9",
-    "unescape": "^1.0.1"
+    "uglify-es": "^3.3.9"
   },
   "devDependencies": {}
 }
