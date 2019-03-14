@@ -10,6 +10,7 @@ const utils = require(`./utils/util.js`);
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
+const customPlugins = require('./plugins/custom-plugins');
 const minifySrc = require('./plugins/minify-src');
 const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
@@ -45,7 +46,10 @@ async function build() {
       // We'll pass around the source string between the plugins
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
-      
+
+      // CUSTOM PLUGINS: Get custom per-site plugins
+      customPlugins();
+
       // PLUGIN: Replace all `[data-include]` in file
       replaceIncludes({file, allowType: ['.html']});
 
