@@ -62,7 +62,7 @@ async function build() {
       replaceSrcPathForDev({file, allowType: ['.css','.html']});
 
       // WIP PLUGIN: Render all ES6 template strings 
-      // `siteData` imported from site-specifc ./config/siteData.js file
+      // `siteData` imported from site-specifc ./config/data.js file
       replaceTemplateStrings({file});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
