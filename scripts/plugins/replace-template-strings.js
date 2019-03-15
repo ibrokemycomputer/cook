@@ -5,18 +5,14 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
-const chalk = require('chalk');
-const fs = require('fs');
-const path = require('path');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
-const decode = require('ent/decode');
 
+const decode = require('ent/decode'); // JSDom HTML entity band-aid
 
 // Config
 
-const siteData = require(`${cwd}/config/siteData.js`);
+const {siteData} = require(`./site-data.js`);
 
 async function replaceTemplateStrings({file, allowType, disallowType}) {
   // Early Exit: File type not allowed

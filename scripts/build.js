@@ -47,20 +47,22 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-      // CUSTOM PLUGINS: Get custom per-site plugins
+      // CUSTOM PLUGINS: Run custom per-site plugins
       customPlugins();
 
-      // PLUGIN: Replace all `[data-include]` in file
+      // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
 
-      // PLUGIN: Inline all external `<link>` and `<script>` tags with `[data-inline]`
+      // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
       replaceInline({file, allowType: ['.html']});
+
       // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
-      // since `/src` doesn't exist in `/dist`
+      // because `/src` doesn't exist in `/dist`
       replaceSrcPathForDev({file, allowType: ['.css','.html']});
 
-      // WIP PLUGIN: Replace all `${vars}` in file from value in siteConfig
+      // WIP PLUGIN: Render all ES6 template strings 
+      // `siteData` imported from site-specifc ./config/siteData.js file
       replaceTemplateStrings({file});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
@@ -77,9 +79,9 @@ async function build() {
       // Write new, modified source back to the file
       fs.writeFileSync(file.path, file.src);
 
-      replaceTemplateStrings({file});
-      
     });
   });
 };
+
+// STEP 3: Profit??
 build();
