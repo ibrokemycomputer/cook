@@ -8,9 +8,10 @@ const cwd = process.cwd();
 const siteData = require(`${cwd}/config/main.js`);
 
 async function customPlugins() {
-  siteData.plugins.forEach(fn => {
+  siteData.plugins.forEach(async fn => {
     const plugin = require(`${cwd}/plugins/${fn}.js`);
-    plugin();
+    let plg = String(fn);
+    if (plugin[plg]) plugin[plg](); 
   });
 }
 

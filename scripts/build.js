@@ -48,7 +48,7 @@ async function build() {
       let file = await getSrcConfig({fileName});
 
       // CUSTOM PLUGINS: Run custom per-site plugins
-      customPlugins();
+      await customPlugins();
 
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
@@ -63,7 +63,7 @@ async function build() {
 
       // WIP PLUGIN: Render all ES6 template strings 
       // `siteData` imported from site-specifc ./config/data.js file
-      replaceTemplateStrings({file});
+      await replaceTemplateStrings({file});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});
