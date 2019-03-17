@@ -10,16 +10,17 @@ const Logger = require(`../utils/logger.js`);
 const decode = require('ent/decode'); // JSDom HTML entity band-aid
 
 async function replaceTemplateStrings({file, allowType, disallowType}) {
+
   // Early Exit: File type not allowed
-  const allowed = utils.isAllowedType({file,allowType,disallowType});
+  const allowed = await utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
 
+  const data = file.data;
+
+  const dataKeys = Object.keys(data),
+      dataValues = dataKeys.map(i => data[i]);
+
   const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
-
-  console.dir(file.data);
-
-  const dataKeys = Object.keys(file.data),
-      dataValues = dataKeys.map(i => file.data[i]);
 
   const compiled = compile(decode(file.src), dataKeys)(...dataValues);
 

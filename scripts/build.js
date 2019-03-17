@@ -19,7 +19,7 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 
 // CONFIG
-const {convertPageToDirectory} = require(`${cwd}/config/main.js`);
+const {convertPageToDirectory, customData} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
 const {getSrcConfig,getSrcFiles} = require('./utils/get-src');
@@ -40,16 +40,17 @@ async function build() {
   // Get valid project files to manipulate (this method makes it so we only need to read/write the file once)
   await getSrcFiles(async files => {
     // CUSTOM PLUGINS: Run custom per-site plugins
-    let fileData = await customPlugins({files});
+    let fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
+    console.log(fileData);
     // Run tasks on matched files
-    await files.forEach(async (fileName, fileData) => {
+    await files.forEach(async (fileName) => {
       
       // Open file and store file info for use in plugins
       // We'll pass around the source string between the plugins
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-      file.data = fileData;
+      file.data = await fileData;
 
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
