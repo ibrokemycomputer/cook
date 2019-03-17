@@ -39,16 +39,17 @@ async function build() {
   
   // Get valid project files to manipulate (this method makes it so we only need to read/write the file once)
   await getSrcFiles(async files => {
+    // CUSTOM PLUGINS: Run custom per-site plugins
+    let fileData = await customPlugins({files});
     // Run tasks on matched files
-    await files.forEach(async fileName => {
+    await files.forEach(async (fileName, fileData) => {
       
       // Open file and store file info for use in plugins
       // We'll pass around the source string between the plugins
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-      // CUSTOM PLUGINS: Run custom per-site plugins
-      await customPlugins();
+      file.data = fileData;
 
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
