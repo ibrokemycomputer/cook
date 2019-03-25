@@ -58,4 +58,4 @@ function babeItUpBro({file}) {
 
 // EXPORT
 // -----------------------------
-module.exports = minifySrc;
+module.exports = babelify;
