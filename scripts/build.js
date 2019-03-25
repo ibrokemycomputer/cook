@@ -7,6 +7,7 @@ const utils = require(`./utils/util.js`);
 
 // PLUGINS
 // -----------------------------
+const babelify = require('./plugins/babelify');
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
@@ -15,8 +16,8 @@ const minifySrc = require('./plugins/minify-src');
 const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
 const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
-const setActiveLinks = require('./plugins/set-active-links.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
+const setActiveLinks = require('./plugins/set-active-links.js');
 
 // CONFIG
 const {convertPageToDirectory} = require(`${cwd}/config/main.js`);
@@ -31,12 +32,14 @@ async function build() {
   // Show init message
   console.log(`${ chalk.blue('\n[Build]') } ${ chalk.blue.bold('`npm run build`') }`);
 
+  let fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
+
   // PLUGIN: Create `/dist` if not already made
   await createDist();
 
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
-  
+
   // Get valid project files to manipulate (this method makes it so we only need to read/write the file once)
   await getSrcFiles(async files => {
     // Run tasks on matched files
@@ -47,8 +50,13 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
+      file.data = await fileData; // RMV THIS!!
+
       // CUSTOM PLUGINS: Run custom per-site plugins
       await customPlugins();
+
+      // PLUGIN: Babelify standalone JS files
+      babelify({file, allowType: ['.html','.js']});
 
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
