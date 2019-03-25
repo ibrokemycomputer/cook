@@ -6,6 +6,7 @@
 // REQUIRE
 // -----------------------------
 // const something = require('something');
+const { babel } = require('@babel/core');
 
 // Config
 // const {srcPath,distPath} = require(`${cwd}/config/main.js`);
@@ -34,7 +35,7 @@ function babelify({file, allowType, disallowType}) {
   let newSrc = babeItUpBro({file});
 
   // Store new source
-  // file.src = newSrc;
+  file.src = newSrc;
 
   // Show terminal message
   Logger.success(`${file.path} - Minified`);
@@ -42,6 +43,9 @@ function babelify({file, allowType, disallowType}) {
 
 function babeItUpBro({file}) {
   console.log(`Sup bro. We're planning to babelify ${file.path}`);
+  babel.transformFileAsync(file.src).then(result => {
+    return result.code;
+  });
 }
 
 
