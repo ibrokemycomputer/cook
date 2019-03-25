@@ -53,14 +53,10 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-<<<<<<< HEAD
       file.data = await fileData; // RMV THIS!!
 
       // CUSTOM PLUGINS: Run custom per-site plugins
       await customPlugins();
-=======
-      file.data = await fileData;
->>>>>>> 1fbfbdd944f3f648d63e9d31cb67dbcf3f8eb228
 
       // PLUGIN: Babelify standalone JS files
       babelify({file, allowType: ['.html','.js']});

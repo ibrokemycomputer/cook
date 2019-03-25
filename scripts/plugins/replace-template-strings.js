@@ -17,13 +17,8 @@ async function replaceTemplateStrings({file, allowType, disallowType}) {
 
   const data = file.data;
 
-<<<<<<< HEAD
   const dataKeys = Object.keys(data);
   const dataValues = dataKeys.map(i => data[i]);
-=======
-  const dataKeys = Object.keys(data),
-      dataValues = dataKeys.map(i => data[i]);
->>>>>>> 1fbfbdd944f3f648d63e9d31cb67dbcf3f8eb228
 
   const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
 
