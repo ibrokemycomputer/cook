@@ -39,7 +39,7 @@ async function babelify({file, allowType, disallowType}) {
   file.src = utils.setSrc({newSrc});
 
   // Show terminal message
-  Logger.success(`${file.path} - Minified`);
+  Logger.success(`${file.path} - Babelified`);
 }
 
 async function babeItUpBro({file}) {
