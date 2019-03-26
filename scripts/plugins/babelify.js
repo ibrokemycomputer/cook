@@ -9,6 +9,9 @@
 const Logger = require(`../utils/logger.js`);
 const utils = require(`../utils/util.js`);
 const babel = require('@babel/core');
+const fs = require('fs');
+const path = require('path');
+
 
 // Config
 // const {srcPath,distPath} = require(`${cwd}/config/main.js`);
@@ -43,27 +46,25 @@ async function babelify({file, allowType, disallowType}) {
   // Early Exit: Don't minify in development
   // if (process.env.NODE_ENV === 'development') return;
 
-  // Minify source differently based on the file type  
-  let newSrc = await babeItUpBro({file});
+  const es5Path = `${file.path.slice(0, file.path.length-file.ext.length)}es5.${file.ext}`;
 
-  // Store updated file source
-  file.src = newSrc;
+  await fs.copyFile(file.path, es5Path, async err => {
+    if (err) throw err;
+    fs.writeFile(es5Path, await babelItUpBro(es5Path), err => {
+      if (err) throw err;
+      // Show terminal message
+      Logger.success(`${file.path} - Copied to ${es5Path} and Babelified`);
+    }); 
+  });
 
-  // Show terminal message
-  Logger.success(`${file.path} - Babelified`);
-}
-
-async function babeItUpBro({file}) {
-  console.log(`Sup bro. We're planning to babelify ${file.path}`);
-  return babel.transformFileSync(file.path, opts).code;
 }
 
 
 // HELPER METHODS
 // -----------------------------
-// function helper() {
-//   console.log('Mom made cookies, and I helped!');
-// }
+async function babelItUpBro(es5File) {
+  return babel.transformFileSync(es5File, opts).code;
+}
 
 
 // EXPORT
