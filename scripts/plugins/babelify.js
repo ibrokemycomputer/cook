@@ -6,8 +6,9 @@
 // REQUIRE
 // -----------------------------
 // const something = require('something');
+const Logger = require(`../utils/logger.js`);
 const utils = require(`../utils/util.js`);
-const { babel } = require('@babel/core');
+const babel = require('@babel/core');
 
 // Config
 // const {srcPath,distPath} = require(`${cwd}/config/main.js`);
@@ -15,10 +16,20 @@ const { babel } = require('@babel/core');
 
 // PLUGIN OPTIONS
 // -----------------------------
-// const opts = [{
-//   doThis: true,
-//   doThat: false
-// }]
+const opts = {
+  "plugins": ["@babel/plugin-transform-classes"],
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+        "browsers": [
+          "> 1%",
+          "last 2 versions",
+          "not ie <= 10"
+        ]
+      }
+    }]
+  ]
+};
 
 
 // DEFINE
@@ -30,13 +41,13 @@ async function babelify({file, allowType, disallowType}) {
   if (!allowed) return;
 
   // Early Exit: Don't minify in development
-  if (process.env.NODE_ENV === 'development') return;
+  // if (process.env.NODE_ENV === 'development') return;
 
   // Minify source differently based on the file type  
   let newSrc = await babeItUpBro({file});
 
   // Store updated file source
-  file.src = utils.setSrc({newSrc});
+  file.src = newSrc;
 
   // Show terminal message
   Logger.success(`${file.path} - Babelified`);
@@ -44,9 +55,7 @@ async function babelify({file, allowType, disallowType}) {
 
 async function babeItUpBro({file}) {
   console.log(`Sup bro. We're planning to babelify ${file.path}`);
-  babel.transformFileAsync(file.src).then(result => {
-    return result.code;
-  });
+  return babel.transformFileSync(file.path, opts).code;
 }
 
 

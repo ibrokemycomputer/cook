@@ -59,7 +59,7 @@ async function build() {
       await customPlugins();
 
       // PLUGIN: Babelify standalone JS files
-      babelify({file, allowType: ['.html','.js']});
+      await babelify({file, allowType: ['.js']});
 
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
