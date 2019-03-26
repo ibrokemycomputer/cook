@@ -33,16 +33,16 @@ function babelify({file, allowType, disallowType}) {
   if (process.env.NODE_ENV === 'development') return;
 
   // Minify source differently based on the file type  
-  let newSrc = babeItUpBro({file});
+  let newSrc = await babeItUpBro({file});
 
-  // Store new source
-  file.src = newSrc;
+  // Store updated file source
+  file.src = utils.setSrc({newSrc});
 
   // Show terminal message
   Logger.success(`${file.path} - Minified`);
 }
 
-function babeItUpBro({file}) {
+async function babeItUpBro({file}) {
   console.log(`Sup bro. We're planning to babelify ${file.path}`);
   babel.transformFileAsync(file.src).then(result => {
     return result.code;
