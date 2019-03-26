@@ -23,7 +23,7 @@ const { babel } = require('@babel/core');
 
 // DEFINE
 // -----------------------------
-function babelify({file, allowType, disallowType}) {
+async function babelify({file, allowType, disallowType}) {
 
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
