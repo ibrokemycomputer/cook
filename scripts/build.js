@@ -58,14 +58,14 @@ async function build() {
       // CUSTOM PLUGINS: Run custom per-site plugins
       await customPlugins();
 
-      // PLUGIN: Babelify standalone JS files
-      await babelify({file, allowType: ['.js']});
-
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
       replaceInline({file, allowType: ['.html']});
+
+      // PLUGIN: Babelify standalone JS files
+      await babelify({file, allowType: ['.js','.html']});
 
       // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
@@ -74,7 +74,7 @@ async function build() {
 
       // WIP PLUGIN: Render all ES6 template strings 
       // `siteData` imported from site-specifc ./config/data.js file
-      await replaceTemplateStrings({file});
+      await replaceTemplateStrings({file, allowType: ['.html']});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});
