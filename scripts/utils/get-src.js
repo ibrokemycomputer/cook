@@ -67,8 +67,8 @@ async function getSrcFiles(cb) {
   Logger.header('\nReplace Tasks');
 
   // Disallowed page types
-  // /dist/vendor - Skip 3rd-party vendor files
-  const defaultExcludedPaths = [new RegExp(`${distPath}\/vendor`)];
+  // /dist/assets/scripts/vendor - Skip 3rd-party vendor files
+  const defaultExcludedPaths = [new RegExp(`${distPath}\/assets\/scripts\/vendor`)];
   const userExcludedPaths = validatePaths(excludePaths);
   const excludedPaths = [...defaultExcludedPaths, ...userExcludedPaths];
   // Allowed page extensions

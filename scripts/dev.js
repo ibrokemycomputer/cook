@@ -14,10 +14,10 @@ const {distPath,srcPath,startPath,watch} = require(`${cwd}/config/main.js`);
 const watchFiles = watch && watch.length 
   ? watch 
   : [
-    '/css/*.css',
+    '/assets/css/*.css',
     '/**/*.html',
-    '/plugin/**/*.css',
-    '/plugin/**/*.js',
+    '/assets/scripts/plugin/**/*.css',
+    '/assets/scripts/plugin/**/*.js',
   ];
 
 // INIT BROWSER-SYNC SERVER
