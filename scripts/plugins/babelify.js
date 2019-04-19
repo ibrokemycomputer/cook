@@ -5,20 +5,18 @@
 
 // REQUIRE
 // -----------------------------
-// const something = require('something');
+const cwd = process.cwd();
 const Logger = require(`../utils/logger.js`);
 const utils = require(`../utils/util.js`);
 const babel = require('@babel/core');
 const fs = require('fs');
-const path = require('path');
 
 // Config
-// const {srcPath,distPath} = require(`${cwd}/config/main.js`);
-
+const {babelOpts} = require(`${cwd}/config/main.js`);
 
 // PLUGIN OPTIONS
 // -----------------------------
-const opts = {
+const opts = babelOpts || {
   "plugins": ["@babel/plugin-transform-classes"],
   "presets": [
     ["@babel/preset-env", {
@@ -69,6 +67,12 @@ async function babelItUpBro(es5File) {
   return babel.transformFileSync(es5File, opts).code;
 }
 
+// TODO: Move this to utils!
+const falsey = ["false","ignore"];
+function isNotFalsey(str) {
+  return !falsey.includes(str);
+}
+
 /**
  * @description Find all script tags, and edit markup for ES5 support if 
  * they do not have `data-inline` or `data-compile="false"`
@@ -83,7 +87,7 @@ function addES5Markup(file) {
       source = script.getAttribute('src');
       if (source 
       && script.getAttribute('data-inline') !== ""
-      && script.getAttribute('data-compile') !== "false") {
+      && isNotFalsey(script.getAttribute('data-build'))) {
         source = source.substr(0,source.length-3);
         // Add `type=module` attribute for modern browsers
         script.setAttribute('type', 'module');
