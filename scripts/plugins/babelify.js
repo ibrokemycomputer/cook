@@ -69,6 +69,10 @@ async function babelItUpBro(es5File) {
   return babel.transformFileSync(es5File, opts).code;
 }
 
+/**
+ * @description Find all script tags, and edit markup for ES5 support if 
+ * they do not have `data-inline` or `data-compile="false"`
+ */
 function addES5Markup(file) {
     // Make source traversable with JSDOM
     let dom = utils.jsdom.dom({src: file.src});
@@ -77,19 +81,20 @@ function addES5Markup(file) {
     let source;
     scripts.forEach(script => {
       source = script.getAttribute('src');
-      source
-      ? source = source.substr(0,source.length-3)
-      : source = 'error';
-      script.setAttribute('type', 'module');
-      // Add new `<script>` tag with `nomodule` for older browsers.
-      script.insertAdjacentHTML('beforebegin', `<script src="${source}.es5.js" nomodule></script>`);
+      if (source 
+      && script.getAttribute('data-inline') !== ""
+      && script.getAttribute('data-compile') !== "false") {
+        source = source.substr(0,source.length-3);
+        // Add `type=module` attribute for modern browsers
+        script.setAttribute('type', 'module');
+        // Add new `<script>` tag with `nomodule` for older browsers.
+        script.insertAdjacentHTML('afterend', `<script src="${source}.es5.js" nomodule></script>`);
+        
+        // Store updated file source
+        file.src = utils.setSrc({dom});
+        Logger.success(`${file.path} - Added ES5 support`);
+      }
     });
-  
-    // Store updated file source
-    file.src = utils.setSrc({dom});
-
-    // Show terminal message
-    Logger.success(`${file.path} - Added ES5 support`);
 }
 
 
