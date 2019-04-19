@@ -41,7 +41,7 @@ async function build() {
   // Get valid project files to manipulate (this method makes it so we only need to read/write the file once)
   await getSrcFiles(async files => {
     // CUSTOM PLUGINS: Run custom per-site plugins
-    if (customData) let fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
+    if (customData) fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
 
     // Run tasks on matched files
     await files.forEach(async (fileName) => {
