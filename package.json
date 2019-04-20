@@ -37,6 +37,7 @@
     "imagemin-webp": "^5.0.0",
     "jsdom": "^13.2.0",
     "rimraf": "^2.6.2",
+    "svgo": "^1.2.2",
     "uglify-es": "^3.3.9"
   },
   "devDependencies": {}

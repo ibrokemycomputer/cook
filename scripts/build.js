@@ -17,13 +17,14 @@ const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
 const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
+const optimizeImages = require('./plugins/optimize-images.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
 // CONFIG
 const {convertPageToDirectory, customData} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
-const {getSrcConfig,getSrcFiles} = require('./utils/get-src');
+const {getSrcConfig,getSrcFiles, getImages} = require('./utils/get-src');
 
 
 // BUILD
@@ -42,7 +43,7 @@ async function build() {
   await getSrcFiles(async files => {
     // CUSTOM PLUGINS: Run custom per-site plugins
     if (customData) fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
-
+    optimizeImages();
     // Run tasks on matched files
     await files.forEach(async (fileName) => {
       

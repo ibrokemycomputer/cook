@@ -8,6 +8,7 @@
 const cwd = process.cwd();
 const Logger = require(`../utils/logger.js`);
 const fs = require('fs');
+const path = require('path');
 
 const fileloop = require('filehound');
 const imagemin = require('imagemin');
@@ -21,7 +22,7 @@ const {customImgDir, customImgTypes} = require(`${cwd}/config/main.js`);
 
 // PLUGIN OPTIONS
 // -----------------------------
-const imgDir = `${cwd}${customImgDir || '/src/assets/img'}`;
+const imgDir = `${cwd}/dist${customImgDir || '/assets/img'}`;
 const imgTypes = customImgTypes || ['jpg','jpeg','png','svg'];
 
 // DEFINE
@@ -64,7 +65,7 @@ function validSource(src) {
 }
 
 async function compress(file, type) {
-	const output = 'dist'+file.substring(6).replace(/\/[^/]+$/, "");
+	const output = file.substring(6).replace(/\/[^/]+$/, "");
 	// skip sys tmp files
 	if (file.indexOf('/tmp/') > -1) return;
 	// raster image? compress appropriately
@@ -93,10 +94,10 @@ async function compress(file, type) {
 
 // convert to webp
 async function convert(file) {
-	const output = 'dist'+file.substring(6).replace(/\/[^/]+$/, "");
+	const output = file.substring(6).replace(/\/[^/]+$/, "");
 	imagemin([file], output, {
 		use: [
-			imageminWebp({ quality: 75 })
+			imageminWebp({ quality: 80 })
 		]
 	})
 }
