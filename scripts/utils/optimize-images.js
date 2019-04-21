@@ -6,7 +6,7 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const Logger = require(`../utils/logger.js`);
+const Logger = require(`./logger.js`);
 const fs = require('fs');
 const path = require('path');
 
@@ -102,7 +102,11 @@ async function convert(file) {
 	})
 }
 
+function modifyImgMarkup() {
+	console.log('hello world');
+}
+
 
 // EXPORT
 // -----------------------------
-module.exports = optimizeImages;
+module.exports = {optimizeImages, modifyImgMarkup};
