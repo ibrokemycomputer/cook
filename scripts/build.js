@@ -19,7 +19,8 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-const {optimizeImages, modifyImgMarkup} = require('./utils/optimize-images');
+const optimizeImages = require('./utils/optimize-images.js');
+const replaceImgTags = require('./utils/image-markup.js');
 
 // CONFIG
 const {convertPageToDirectory, customData} = require(`${cwd}/config/main.js`);
@@ -43,8 +44,9 @@ async function build() {
   await getSrcFiles(async files => {
     // CUSTOM PLUGINS: Run custom per-site plugins
     if (customData) fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
+
     optimizeImages();
-    modifyImgMarkup();
+
     // Run tasks on matched files
     await files.forEach(async (fileName) => {
       
@@ -59,10 +61,12 @@ async function build() {
       await customPlugins();
 
       // PLUGIN: Replace `[data-include]` in files
-      replaceIncludes({file, allowType: ['.html']});
+      await replaceIncludes({file, allowType: ['.html']});
+
+      await replaceImgTags({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
-      replaceInline({file, allowType: ['.html']});
+      await replaceInline({file, allowType: ['.html']});
 
       // PLUGIN: Babelify standalone JS files
       await babelify({file, allowType: ['.js','.html']});

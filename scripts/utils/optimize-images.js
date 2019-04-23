@@ -65,7 +65,7 @@ function validSource(src) {
 }
 
 async function compress(file, type) {
-	const output = file.substring(6).replace(/\/[^/]+$/, "");
+	const output = file.replace(/\/[^/]+$/, "");
 	// skip sys tmp files
 	if (file.indexOf('/tmp/') > -1) return;
 	// raster image? compress appropriately
@@ -94,7 +94,7 @@ async function compress(file, type) {
 
 // convert to webp
 async function convert(file) {
-	const output = file.substring(6).replace(/\/[^/]+$/, "");
+	const output = file.replace(/\/[^/]+$/, "");
 	imagemin([file], output, {
 		use: [
 			imageminWebp({ quality: 80 })
@@ -102,11 +102,6 @@ async function convert(file) {
 	})
 }
 
-function modifyImgMarkup() {
-	console.log('hello world');
-}
-
-
 // EXPORT
 // -----------------------------
-module.exports = {optimizeImages, modifyImgMarkup};
+module.exports = optimizeImages;
