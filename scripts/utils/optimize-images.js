@@ -7,10 +7,8 @@
 // -----------------------------
 const cwd = process.cwd();
 const Logger = require(`./logger.js`);
-const fs = require('fs');
-const path = require('path');
-
 const fileloop = require('filehound');
+
 const imagemin = require('imagemin');
 const imageminSvgo = require('imagemin-svgo');
 const imageminWebp = require('imagemin-webp');
@@ -49,12 +47,6 @@ async function optimizeImages() {
 // HELPER METHODS
 // -----------------------------
 
-// TODO: Move this to utils!
-const falsey = ["false","ignore"];
-function isNotFalsey(str) {
-  return !falsey.includes(str);
-}
-
 function validSource(src) {
   return (
     !src.includes('android-chrome') &&
@@ -76,7 +68,6 @@ async function compress(file, type) {
 				imageminPngquant({ quality: '65-80' })
 			]
 		})
-		// TODO: Add gif
 	} else {
 		imagemin([file], output, {
 			use: [

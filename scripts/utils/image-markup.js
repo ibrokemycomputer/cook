@@ -22,7 +22,7 @@ async function replaceImgTags({file, allowType, disallowType}) {
   if (!allowed) return;
 
   // Early Exit: Do not replace files locally
-  // if (process.env.NODE_ENV === 'development') return;
+  if (process.env.NODE_ENV === 'development') return;
 
   // Make source traversable with JSDOM
   let dom = utils.jsdom.dom({src: file.src});
@@ -39,18 +39,13 @@ async function replaceImgTags({file, allowType, disallowType}) {
 
 }
 
-const falsey = ["false","ignore"];
-function isNotFalsey(str) {
-  return !falsey.includes(str);
-}
-
 function validSource(src) {
   return ( !src.includes('//') );
 }
 
 async function compressInlineSVGs(svgs) {
   svgs.forEach(el => {
-    if (isNotFalsey(el.getAttribute('data-optimize'))) {
+    if (el.getAttribute('data-optimize') !== 'disabled') {
       svgo.optimize(el.outerHTML).then(result => {
         console.log(result);
         el.insertAdjacentHTML('beforebegin', result.data);
@@ -62,18 +57,15 @@ async function compressInlineSVGs(svgs) {
 
 async function editMarkup(images, file) {
   images.forEach(el => {
-    if (isNotFalsey(el.getAttribute('data-optimize'))) { 
+    if (el.getAttribute('data-optimize') !== 'disabled') { 
       Logger.system(`Editing img tags in ${file.name}`);
-      // filetype logic and formatting
-      const originalFileSource = el.getAttribute('src');
 
+      const originalFileSource = el.getAttribute('src');
       if (validSource(originalFileSource)) {
-        Logger.warning(`${file.name} has valid source`);
         const webpFileSource = originalFileSource.replace(/\.[^/.]+$/, "");
         let originalFiletype = el.getAttribute('src').split('.').pop();
         if (originalFiletype === 'jpg') originalFiletype = 'jpeg';
         const typesToConvert = ['jpeg','png'];
-
         let attributes = '';
         const attrs = el.attrs;
         for (let p in attrs) attributes += `${p}="${attrs[p]}"`;
@@ -85,8 +77,7 @@ async function editMarkup(images, file) {
               <source srcset="${webpFileSource}.webp" type="image/webp">
               <source srcset="${originalFileSource}" type="image/${originalFiletype}">
               <img src="${originalFileSource}" ${attributes}>
-              </picture>`
-          ;
+              </picture>`;
           el.insertAdjacentHTML('beforebegin', markup);
           el.remove();
         }

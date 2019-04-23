@@ -19,8 +19,6 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-const getGit = require('./utils/git.js');
-
 const optimizeImages = require('./utils/optimize-images.js');
 const replaceImgTags = require('./utils/image-markup.js');
 
@@ -36,9 +34,6 @@ const {getSrcConfig,getSrcFiles} = require('./utils/get-src');
 async function build() {
   // Show init message
   console.log(`${ chalk.blue('\n[Build]') } ${ chalk.blue.bold('`npm run build`') }`);
-
-  // Get git deltas
-  await getGit();
 
   // PLUGIN: Create `/dist` if not already made
   await createDist();

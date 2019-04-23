@@ -35,47 +35,38 @@ const opts = babelOpts || {
 // DEFINE
 // -----------------------------
 async function babelify({file, allowType, disallowType}) {
-
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
 
   // Early Exit: Don't minify in development
-  // if (process.env.NODE_ENV === 'development') return;
+  if (process.env.NODE_ENV === 'development') return;
 
-  if (file.ext === 'js') {
+  if (file.ext === 'js') { // Runs on .js files
     const es5Path = `${file.path.slice(0, file.path.length-file.ext.length)}es5.${file.ext}`;
 
     await fs.copyFile(file.path, es5Path, async err => {
       if (err) throw err;
-      fs.writeFile(es5Path, await babelItUpBro(es5Path), err => {
+      fs.writeFile(es5Path, await createEs5File(es5Path), err => {
         if (err) throw err;
-        // Show terminal message
         Logger.success(`${file.path} - Copied to ${es5Path} and Babelified`);
       }); 
     });
-  } else {
+  } else { // Runs on .html files
     addES5Markup(file);
   }
-
 }
 
 
 // HELPER METHODS
 // -----------------------------
-async function babelItUpBro(es5File) {
+async function createEs5File(es5File) {
   return babel.transformFileSync(es5File, opts).code;
-}
-
-// TODO: Move this to utils!
-const falsey = ["false","ignore"];
-function isNotFalsey(str) {
-  return !falsey.includes(str);
 }
 
 /**
  * @description Find all script tags, and edit markup for ES5 support if 
- * they do not have `data-inline` or `data-compile="false"`
+ * they do not have `data-inline` or `data-compile="disabled"`
  */
 function addES5Markup(file) {
     // Make source traversable with JSDOM
@@ -87,7 +78,7 @@ function addES5Markup(file) {
       source = script.getAttribute('src');
       if (source 
       && script.getAttribute('data-inline') !== ""
-      && isNotFalsey(script.getAttribute('data-build'))) {
+      && script.getAttribute('data-build') !== 'disabled') {
         source = source.substr(0,source.length-3);
         // Add `type=module` attribute for modern browsers
         script.setAttribute('type', 'module');
