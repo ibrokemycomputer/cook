@@ -43,7 +43,7 @@ async function build() {
 
   await getSrcFiles(async files => {
     // CUSTOM PLUGINS: Run custom per-site plugins
-    if (customData) fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
+    //if (customData) fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
 
     optimizeImages();
 
@@ -55,7 +55,7 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-      file.data = await fileData; // RMV THIS!!
+      // file.data = await fileData; // RMV THIS!!
 
       // CUSTOM PLUGINS: Run custom per-site plugins
       await customPlugins();
