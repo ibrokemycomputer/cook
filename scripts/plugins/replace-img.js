@@ -1,8 +1,8 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const utils = require(`./util.js`);
-const Logger = require(`./logger.js`);
+const utils = require(`../utils/util.js`);
+const Logger = require(`../utils/logger.js`);
 const SVGO = require('svgo');
 
 // Config
