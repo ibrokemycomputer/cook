@@ -115,7 +115,7 @@ function getPaths(originalPath, path, ignorePattern, paths = []) {
       const fd = fs.lstatSync(currentFilePath);
       // If path is ignored, either by default or user-entered (`excludePaths` in /config/main.js),
       // We won't do anything to it once it is copied to /dist
-      // This is handy for `/dist/vendor`, for example, since that is code likely already minified
+      // This is handy for `/dist/assets/scripts/vendor`, for example, since that is code likely already minified
       // and outside of the user's control
       let allowed = true, pattern, match;
       if (ignorePattern) {
@@ -208,6 +208,6 @@ function setSrc({dom}) {
  * @property {Object} file - The current file's info (ext,name,path,src)
  */
 function testSrc({file}) {
-  const test = ['dist/plugin/zc-obfuscate/zc-obfuscate.js','dist/index.html','dist/includes/global-head.html','dist/css/main.css'];
+  const test = ['dist/assets/scripts/plugin/pf-webp/pf-webp.js','dist/index.html','dist/includes/global-head.html','dist/assets/css/main.css'];
   if (test.indexOf(file.path) > -1) console.log(`\n----------------------\n\n${chalk.blue(file.path)}\n\n${file.src}\n`);
 }

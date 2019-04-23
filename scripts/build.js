@@ -19,6 +19,9 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
+const optimizeImages = require('./utils/optimize-images.js');
+const replaceImgTags = require('./utils/image-markup.js');
+
 // CONFIG
 const {convertPageToDirectory, customData} = require(`${cwd}/config/main.js`);
 
@@ -32,19 +35,18 @@ async function build() {
   // Show init message
   console.log(`${ chalk.blue('\n[Build]') } ${ chalk.blue.bold('`npm run build`') }`);
 
-  let fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
-
   // PLUGIN: Create `/dist` if not already made
   await createDist();
 
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
 
-  // Get valid project files to manipulate (this method makes it so we only need to read/write the file once)
   await getSrcFiles(async files => {
     // CUSTOM PLUGINS: Run custom per-site plugins
-    let fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
-    console.log(fileData);
+    if (customData) fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
+
+    optimizeImages();
+
     // Run tasks on matched files
     await files.forEach(async (fileName) => {
       
@@ -59,10 +61,12 @@ async function build() {
       await customPlugins();
 
       // PLUGIN: Replace `[data-include]` in files
-      replaceIncludes({file, allowType: ['.html']});
+      await replaceIncludes({file, allowType: ['.html']});
+
+      await replaceImgTags({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
-      replaceInline({file, allowType: ['.html']});
+      await replaceInline({file, allowType: ['.html']});
 
       // PLUGIN: Babelify standalone JS files
       await babelify({file, allowType: ['.js','.html']});
@@ -91,7 +95,7 @@ async function build() {
       fs.writeFileSync(file.path, file.src);
 
     });
-  });
+  }); 
 };
 
 // STEP 3: Profit??

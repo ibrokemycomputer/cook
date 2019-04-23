@@ -1,5 +1,5 @@
 {
-  "name": "static-build",
+  "name": "pathfinder",
   "siteName": "PINT",
   "version": "1.0.0",
   "private": true,
@@ -26,11 +26,18 @@
     "chalk": "^2.4.1",
     "clean-css": "^4.2.1",
     "ent": "^2.2.0",
+    "filehound": "^1.17.0",
     "fs-extra": "^7.0.1",
     "html-minifier": "^3.5.21",
     "http-server": "^0.11.1",
+    "imagemin": "^6.1.0",
+    "imagemin-mozjpeg": "^8.0.0",
+    "imagemin-pngquant": "^7.0.0",
+    "imagemin-svgo": "^7.0.0",
+    "imagemin-webp": "^5.0.0",
     "jsdom": "^13.2.0",
     "rimraf": "^2.6.2",
+    "svgo": "^1.2.2",
     "uglify-es": "^3.3.9"
   },
   "devDependencies": {}
