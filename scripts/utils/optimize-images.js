@@ -33,9 +33,12 @@ async function optimizeImages() {
           const image = await compress(file, type);
           if (type !== 'svg') {
             const webp = await convert(file);
-            Logger.success(`${file} compressed and converted to webp.`);
-          } else {
-            Logger.success(`${file} optimized with svgo.`);
+            // Show terminal message: Done
+            Logger.success(`${file.path} - Compressed & Converted to WebP.`);
+          } 
+          else {
+            // Show terminal message: Done
+            Logger.success(`${file.path} - Optimized via SVGO.`);
           }
         }
       })

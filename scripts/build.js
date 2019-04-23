@@ -13,6 +13,7 @@ const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
 const customPlugins = require('./plugins/custom-plugins');
 const minifySrc = require('./plugins/minify-src');
+const replaceImgTags = require('./plugins/replace-img.js');
 const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
 const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
@@ -20,7 +21,6 @@ const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
 const optimizeImages = require('./utils/optimize-images.js');
-const replaceImgTags = require('./utils/image-markup.js');
 
 // CONFIG
 const {convertPageToDirectory, customData} = require(`${cwd}/config/main.js`);
@@ -63,6 +63,7 @@ async function build() {
       // PLUGIN: Replace `[data-include]` in files
       await replaceIncludes({file, allowType: ['.html']});
 
+      // PLUGIN: Replace `<img>` tags
       await replaceImgTags({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags

@@ -25,7 +25,9 @@ async function replaceIncludes({file, allowType, disallowType}) {
   
   let errorLabel, errorPath, hasInclude, includePath;
   let dom = utils.jsdom.dom({src: file.src});
-  const includeItems = dom.window.document.querySelectorAll(`[${utils.attr.include}]`);
+  // Allow `[include]` or `[data-include]` by default
+  const includeSelector = getIncludeSelector(utils.attr.include);
+  const includeItems = dom.window.document.querySelectorAll(includeSelector);
 
   // Early Exit: No includes
   if (!includeItems) return;
@@ -34,10 +36,10 @@ async function replaceIncludes({file, allowType, disallowType}) {
   includeItems.forEach((el,i) => {
 
     // If attribute found and it has a path
-    hasInclude = el.getAttribute(utils.attr.include);
-    if (hasInclude && hasInclude.length) {
+    hasInclude = hasAttribute(el, utils.attr.include);
+    if (hasInclude && hasInclude.path && hasInclude.path.length) {
       try {
-        includePath = path.resolve(`${distPath}/${hasInclude}`);
+        includePath = path.resolve(`${distPath}/${hasInclude.path}`);
         // If you are pointing to an include w/o the `.html` extension
         // We'll add it since the directory-replacement only occurs in /dist (See `createDirFromFile()` in build.js)
         // Example: `<div include="/includes/header"></div>`
@@ -52,7 +54,7 @@ async function replaceIncludes({file, allowType, disallowType}) {
         // Remove placeholder element from DOM
         el.remove();
         // Show terminal message
-        Logger.success(`${file.path} - Replaced [${utils.attr.include}]: ${ chalk.green(hasInclude) }`);
+        Logger.success(`${file.path} - Replaced [${hasInclude.type}]: ${ chalk.green(hasInclude.path) }`);
       }
       catch (error) {
         errorLabel = `Invalid include path in '${file.path}`;
@@ -67,10 +69,31 @@ async function replaceIncludes({file, allowType, disallowType}) {
   
   // Query again for includes. If sub-includes found, run again
   dom = utils.jsdom.dom({src: file.src});
-  const newSubIncludes = dom.window.document.querySelectorAll(`[${utils.attr.include}]`);
+  const newIncludeSelector = getIncludeSelector(utils.attr.include);
+  const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
+  // const newSubIncludes = dom.window.document.querySelectorAll(`[${utils.attr.include}]`);
   if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
 }
 
+// HELPER METHODS
+// -----------------------------
+
+function getIncludeSelector(attrs) {
+  let selector = '';
+  if (typeof attrs === 'string') selector = `[${attrs}]`;
+  else attrs.forEach((a,i) => selector += i === 0 ? `[${a}]` : `,[${a}]`);
+  return selector;
+}
+
+function hasAttribute(el, attrs) {
+  let tmpArr = [];
+  if (typeof attrs === 'string') tmpArr.push({ type: utils.attr.include, path: el.getAttribute(utils.attr.include) });
+  else attrs.forEach((a,i) => tmpArr.push({ type: a, path: el.getAttribute(a) }));
+  // Filter out falsey
+  tmpArr = tmpArr.filter(a => a.path);
+  // Return boolean
+  return tmpArr[0] || false;
+}
 
 // EXPORT
 // -----------------------------
