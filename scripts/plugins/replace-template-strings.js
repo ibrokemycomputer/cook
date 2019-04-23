@@ -5,6 +5,7 @@
 
 // REQUIRE
 // -----------------------------
+const cwd = process.cwd();
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 const decode = require('ent/decode'); // JSDom HTML entity band-aid
@@ -15,7 +16,7 @@ async function replaceTemplateStrings({file, allowType, disallowType}) {
   const allowed = await utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
 
-  const data = file.data;
+  const data = file.data || require(`${cwd}/config/data.js`);
 
   const dataKeys = Object.keys(data);
   const dataValues = dataKeys.map(i => data[i]);
