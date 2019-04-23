@@ -19,6 +19,8 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
+const {filenames} = require('./utils/git.js');
+
 const optimizeImages = require('./utils/optimize-images.js');
 const replaceImgTags = require('./utils/image-markup.js');
 
@@ -40,6 +42,11 @@ async function build() {
 
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
+
+  console.log(`FILENAMES ARE: ${filenames}
+  
+  
+  `);
 
   await getSrcFiles(async files => {
     // CUSTOM PLUGINS: Run custom per-site plugins
