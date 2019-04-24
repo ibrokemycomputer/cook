@@ -54,7 +54,7 @@ function getComparisonPart(path) {
 function setActive({file, link}) {
   const currPath = getComparisonPart(file.path);
   const linkPath = getComparisonPart(link.href);
-  if (linkPath === currPath) link.setAttribute('data-active','');
+  if (linkPath === currPath) link.setAttribute(utils.attr.active,'');
 }
 
 // EXPORT
