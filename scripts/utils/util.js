@@ -30,18 +30,24 @@ const attr = {
   inline: inlineAttr || 'data-inline',
 }
 
+// The default path types to target in `replace-external-link-protocol.js`
+// if not defined by the user in the config file
+const replaceExternalLinkProtocolDefaults = ['cdn', 'www'];
+
 
 // EXPORT
 // ----------------------------------
 module.exports = {
   attr,
   convertExternalLinks,
+  getFileName,
   getFileParts,
   getPaths,
   hasExtension,
   isAllowedType,
   isExtension,
   jsdom,
+  replaceExternalLinkProtocolDefaults,
   setSrc,
   testSrc,
 };
@@ -86,6 +92,23 @@ function convertExternalLinks(source) {
 }
 
 /**
+ * @description Return filename from path
+ * @param {String} path - The file path (/path/to/file.ext)
+ * @param {String} distPath - The path to the /dist directory
+ * @return {String}
+ * @private
+ */ 
+function getFileName(path, distPath) {
+  let splitOnSlash = path.split('/');
+  splitOnSlash = splitOnSlash.filter(s => s !== '');
+  let lastPart = splitOnSlash[splitOnSlash.length-1];
+  let fileName = lastPart.split('.')[0];
+  if (fileName === 'index') fileName = splitOnSlash[splitOnSlash.length-2];
+  if (fileName === distPath) fileName = '/';
+  return fileName;
+}
+
+/**
  * @description Return object with filename `name` and `extension`
  * @param {path} - The file path (/path/to/file.ext)
  * @return {Object}
@@ -96,6 +119,7 @@ function getFileParts(path) {
   const fileName = fileSplit[fileSplit.length - 1].split('.');
   return { name: fileName[0], ext: fileName[1] };
 }
+
 
 /**
  * @description Recursively grab all paths in a folder structure

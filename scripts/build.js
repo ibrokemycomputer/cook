@@ -15,6 +15,7 @@ const customPlugins = require('./plugins/custom-plugins');
 const minifySrc = require('./plugins/minify-src');
 const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
+const replaceMissingExternalLinkProtocol = require('./plugins/replace-external-link-protocol.js');
 const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
@@ -22,7 +23,7 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
 
 // CONFIG
-const {convertPageToDirectory, plugins, optimizeSVGs, optimizeImages} = require(`${cwd}/config/main.js`);
+const {convertPageToDirectory, plugins, optimizeSVGs, optimizeImages, replaceExternalLinkProtocol = {enabled:true}, } = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
@@ -61,6 +62,9 @@ async function build() {
 
       // CUSTOM PLUGINS: Run custom per-site plugins
       await customPlugins(plugins);
+
+      // PLUGIN: Add missing `http://` to user-added external link `[href]` values (`[href="www.xxxx.com"]`)
+      if (replaceExternalLinkProtocol.enabled) await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-include]` in files
       await replaceIncludes({file, allowType: ['.html']});

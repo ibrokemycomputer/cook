@@ -34,16 +34,6 @@ async function setActiveLinks({file, allowType, disallowType}) {
 // HELPER METHODS
 // -----------------------------
 
-function getComparisonPart(path) {
-  let splitOnSlash = path.split('/');
-  splitOnSlash = splitOnSlash.filter(s => s !== '');
-  let lastPart = splitOnSlash[splitOnSlash.length-1];
-  let fileName = lastPart.split('.')[0];
-  if (fileName === 'index') fileName = splitOnSlash[splitOnSlash.length-2];
-  if (fileName === distPath) fileName = '/';
-  return fileName;
-}
-
 /**
  * @description Set <a> tags to 'active' state if their [href] value file name matches the current file's name
  * @param {Object} opts - The arguments object
@@ -52,8 +42,8 @@ function getComparisonPart(path) {
  * @private
  */
 function setActive({file, link}) {
-  const currPath = getComparisonPart(file.path);
-  const linkPath = getComparisonPart(link.href);
+  const currPath = utils.getFileName(file.path, distPath);
+  const linkPath = utils.getFileName(link.href, distPath);
   if (linkPath === currPath) link.setAttribute(utils.attr.active,'');
 }
 
