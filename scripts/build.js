@@ -19,7 +19,7 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-const {compressRasterImages, replaceImgTags, optimizeSVG} = require('./utils/images.js');
+const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./utils/images.js');
 
 // CONFIG
 const {convertPageToDirectory, plugins} = require(`${cwd}/config/main.js`);
@@ -40,10 +40,11 @@ async function build() {
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
 
-  // PLUGIN: Optimize raster images (jpg, jpeg, png)
-  compressRasterImages();
   // PLUGIN: Optimize .svg files with SVGO
   optimizeSVG(file, 'image');
+
+  // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
+  compressAndNextGen();
 
   await getSrcFiles(async files => {
 

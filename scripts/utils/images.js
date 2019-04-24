@@ -19,7 +19,7 @@ const {customImgDir, customImgTypes, distPath} = require(`${cwd}/config/main.js`
 // PLUGIN OPTIONS
 // -----------------------------
 const imgDir = `${cwd}/dist${customImgDir || '/assets/img'}`;
-const imgTypes = customImgTypes || ['jpg','jpeg','png','svg'];
+const imgTypes = customImgTypes || ['jpg','jpeg','png'];
 const svgo = new SVGO({
   plugins: [
     { removeDimensions: true },
@@ -31,18 +31,13 @@ const svgo = new SVGO({
 
 // DEFINE
 // -----------------------------
-async function compressRasterImages() {
+async function compressAndNextGen() {
   imgTypes.forEach(type => {
     fileloop.create().paths(imgDir).ext(type).find((err, files) => {
       err ? console.log(err) : files.forEach(async function(file) {
         if (validSource(file)) {
-          const image = await compress(file, type);
-          if (type !== 'svg') {
-            const webp = await convert(file);
-            Logger.success(`${file} compressed and converted to webp.`);
-          } else {
-            Logger.success(`${file} optimized with svgo.`);
-          }
+          await compress(file, type);
+          await convertToWebp(file);
         }
       })
     });
@@ -61,16 +56,26 @@ async function replaceImgTags({file, allowType, disallowType}) {
   // Make source traversable with JSDOM
   let dom = utils.jsdom.dom({src: file.src});
 
-  // Store all <img> & <svg> tags
+  // Store all <img> tags
   const images = dom.window.document.querySelectorAll(`img`);
-  const svgs = dom.window.document.querySelectorAll(`svg`);
 
-  await compressInlineSVGs(svgs);
   await editMarkup(images, file);
   
   file.src = utils.setSrc({dom});
   Logger.success(`Edited image markup in ${file.name}`);
 
+}
+
+async function optimizeSVG(file, type) {
+  if (type === 'image') {
+    compress(file, 'svg')
+  } else {
+    // Make source traversable with JSDOM
+    let dom = utils.jsdom.dom({src: file.src});
+    // Store all <svg> tags
+    const svgs = dom.window.document.querySelectorAll(`svg`);
+    await compressInlineSVGs(svgs);
+  }
 }
 
 
@@ -82,7 +87,7 @@ async function editMarkup(images, file) {
       const originalFileSource = el.getAttribute('src');
       if (validSource(originalFileSource)) {
         const webpFileSource = originalFileSource.replace(/\.[^/.]+$/, "");
-        let originalFiletype = el.getAttribute('src').split('.').pop();
+        let originalFiletype = file.ext;
         if (originalFiletype === 'jpg') originalFiletype = 'jpeg';
         const typesToConvert = ['jpeg','png'];
         let attributes = '';
@@ -160,14 +165,15 @@ async function compress(file, type) {
 
 
 // convert to webp
-async function convert(file) {
+async function convertToWebp(file) {
 	const output = file.replace(/\/[^/]+$/, "");
 	imagemin([file], output, {
 		use: [
 			imageminWebp({ quality: 80 })
 		]
-	})
+  })
+  Logger.success(`${file} compressed and converted to webp.`);
 }
 
 
-module.exports = {compressRasterImages, replaceImgTags, optimizeSVG};
+module.exports = {compressAndNextGen, replaceImgTags, optimizeSVG};
