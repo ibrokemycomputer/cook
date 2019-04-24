@@ -69,13 +69,20 @@ async function replaceImgTags({file, allowType, disallowType}) {
 async function optimizeSVG(file, type) {
   // Early Exit: Only allow `html` extensions
   if (file.ext !== 'html') return;
+
+  // When SVG is an external call to a .svg file
   if (type === 'image') {
     compress(file, 'svg')
-  } else {
+  } 
+  // When SVG is inline in the markup
+  else {
     // Make source traversable with JSDOM
     let dom = utils.jsdom.dom({src: file.src});
     // Store all <svg> tags
     const svgs = dom.window.document.querySelectorAll(`svg`);
+    // Add `[xmlns:xlink="http://www.w3.org/1999/xlink"]` to each <svg> instance
+    // before trying to run SVGO, or it will throw a namespace error in terminal
+    svgs.forEach(s => s.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'));
     await compressInlineSVGs(svgs);
     Logger.success(`${file.name} inline SVGs optimized.`);
   }
