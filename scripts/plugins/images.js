@@ -69,13 +69,15 @@ async function replaceImgTags({file, allowType, disallowType}) {
 async function optimizeSVG(file, type) {
   // Early Exit: Only allow `html` extensions
   if (file.ext !== 'html') return;
-  if (type === 'image') {
+  if (type === 'image') { // .svg file
     compress(file, 'svg')
-  } else {
+  } else { // .html file with inline <svg>
     // Make source traversable with JSDOM
     let dom = utils.jsdom.dom({src: file.src});
     // Store all <svg> tags
     const svgs = dom.window.document.querySelectorAll(`svg`);
+    // Add xlink namespace to prevent errors (particularly for <use>)
+    svgs.forEach(s => s.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'));
     await compressInlineSVGs(svgs);
     Logger.success(`${file.name} inline SVGs optimized.`);
   }

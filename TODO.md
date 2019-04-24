@@ -1,6 +1,8 @@
 # TODO
 
-1. **More documentation!**
+1. **More documentation!**/ comments
+2. HTML Entities / ignore wrapper for template strings
+3. Testing
 
 ## Site
 
