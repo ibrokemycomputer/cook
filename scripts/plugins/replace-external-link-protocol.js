@@ -9,7 +9,9 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
+const chalk = require('chalk');
 const utils = require(`../utils/util.js`);
+const Logger = require(`../utils/logger.js`);
 
 // Config
 let {distPath,replaceExternalLinkProtocol} = require(`${cwd}/config/main.js`);
@@ -62,6 +64,8 @@ function replaceMissingProtocol({file, link}) {
   // We'll only replace these, as they represent the links we want to convert
   if (linkPathSplit.indexOf('localhost') === -1) return;
   link.href = `http://${linkPathSplit[linkPathSplit.length-1]}`;
+  // Show terminal message
+  Logger.success(`${file.path} - Added 'http://' to [href="${linkPathSplit[linkPathSplit.length-1]}"]: ${ chalk.green(link.href) }`);
 }
 
 // EXPORT
