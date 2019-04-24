@@ -27,6 +27,7 @@ async function replaceTemplateStrings({file, allowType, disallowType}) {
 
   file.src = compiled;
 
+  // Show terminal message: Done
   Logger.success(`${file.path} - Replaced template strings`);
 }
 

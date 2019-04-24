@@ -25,7 +25,7 @@ const jsdom = {
 // ----------------------------------
 // Attribute values
 const attr = {
-  include: includeAttr || 'data-include',
+  include: includeAttr || ['include', 'data-include'],
   inline: inlineAttr || 'data-inline',
 }
 
