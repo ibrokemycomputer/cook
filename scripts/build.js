@@ -19,13 +19,13 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./utils/images.js');
+const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
 
 // CONFIG
-const {convertPageToDirectory, plugins} = require(`${cwd}/config/main.js`);
+const {convertPageToDirectory, plugins, optimizeSVGs, optimizeImages} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
-const {getSrcConfig,getSrcFiles, getSrcImages} = require('./utils/get-src');
+const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
 
 
 // BUILD
@@ -40,11 +40,14 @@ async function build() {
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
 
-  // PLUGIN: Optimize .svg files with SVGO
-  optimizeSVG(file, 'image');
-
-  // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
-  compressAndNextGen();
+  await getSrcImages(async images => {
+    images.forEach(image => {
+      // PLUGIN: Optimize .svg files with SVGO
+      if (optimizeSVGs !== false) optimizeSVG(image, 'image');
+      // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
+      if (optimizeImages !== false) compressAndNextGen(image);
+    })
+  });
 
   await getSrcFiles(async files => {
 
@@ -66,10 +69,10 @@ async function build() {
       await replaceInline({file, allowType: ['.html']});
 
       // PLUGIN: Replace <img> tags with <picture> elements
-      await replaceImgTags({file, allowType: ['.html']});
+      if (optimizeImages !== false) await replaceImgTags({file, allowType: ['.html']});
 
       // PLUGIN: Optimize inline <svg>'s with SVGO
-      await optimizeSVG(file, 'inline');
+      if (optimizeSVGs !== false) await optimizeSVG(file, 'inline');
 
       // PLUGIN: Babelify standalone JS files
       await babelify({file, allowType: ['.js','.html']});

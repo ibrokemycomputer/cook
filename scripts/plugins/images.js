@@ -67,6 +67,8 @@ async function replaceImgTags({file, allowType, disallowType}) {
 }
 
 async function optimizeSVG(file, type) {
+  // Early Exit: Only allow `html` extensions
+  if (file.ext !== 'html') return;
   if (type === 'image') {
     compress(file, 'svg')
   } else {
@@ -75,6 +77,7 @@ async function optimizeSVG(file, type) {
     // Store all <svg> tags
     const svgs = dom.window.document.querySelectorAll(`svg`);
     await compressInlineSVGs(svgs);
+    Logger.success(`${file.name} inline SVGs optimized.`);
   }
 }
 
@@ -160,7 +163,8 @@ async function compress(file, type) {
 				})
 			]
 		})
-	}
+  }
+  Logger.success(`${file} optimized.`);
 }
 
 
@@ -172,7 +176,7 @@ async function convertToWebp(file) {
 			imageminWebp({ quality: 80 })
 		]
   })
-  Logger.success(`${file} compressed and converted to webp.`);
+  Logger.success(`${file} converted to webp.`);
 }
 
 
