@@ -16,8 +16,8 @@ async function replaceTemplateStrings({file, allowType, disallowType}) {
   const allowed = await utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
 
-  const data = file.data || require(`${cwd}/config/data.js`);
-
+  const data = file.data || require(`${cwd}/config/data.js`); // TODO: Fix this
+  
   const dataKeys = Object.keys(data);
   const dataValues = dataKeys.map(i => data[i]);
 

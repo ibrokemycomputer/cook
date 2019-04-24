@@ -20,6 +20,7 @@ const {excludePaths,distPath,srcPath} = require(`${cwd}/config/main.js`);
 module.exports = {
   getSrcConfig,
   getSrcFiles,
+  getSrcImages
 };
 
 
@@ -79,6 +80,27 @@ async function getSrcFiles(cb) {
   files = files.filter(fileName => utils.isExtension(fileName, allowedExt));
   // Run tasks on matched files
   if (cb) cb(files);
+}
+
+/**
+ * @description - Return all allowed images for the build process
+ * @param {Object} cb - The callback function once the images have been grouped
+ * @private
+ */
+async function getSrcImages(cb) {
+  // Disallowed page types
+  // /dist/assets/scripts/vendor - Skip 3rd-party vendor images
+  const defaultExcludedPaths = [new RegExp(`${distPath}\/assets\/scripts\/vendor`)];
+  const userExcludedPaths = validatePaths(excludePaths);
+  const excludedPaths = [...defaultExcludedPaths, ...userExcludedPaths];
+  // Allowed page extensions
+  const allowedExt = ['jpg', 'jpeg', 'png', 'svg'];
+  // Get images in `/dist`
+  let images = utils.getPaths(distPath, distPath, excludedPaths);
+  // Get only the allowed images by extension (.css, .html)
+  images = images.filter(fileName => utils.isExtension(fileName, allowedExt));
+  // Run tasks on matched images
+  if (cb) cb(images);
 }
 
 

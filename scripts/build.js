@@ -13,20 +13,19 @@ const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
 const customPlugins = require('./plugins/custom-plugins');
 const minifySrc = require('./plugins/minify-src');
-const replaceImgTags = require('./plugins/replace-img.js');
 const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
 const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-const optimizeImages = require('./utils/optimize-images.js');
+const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
 
 // CONFIG
-const {convertPageToDirectory, customData} = require(`${cwd}/config/main.js`);
+const {convertPageToDirectory, plugins, optimizeSVGs, optimizeImages} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
-const {getSrcConfig,getSrcFiles} = require('./utils/get-src');
+const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
 
 
 // BUILD
@@ -41,11 +40,16 @@ async function build() {
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
 
-  await getSrcFiles(async files => {
-    // CUSTOM PLUGINS: Run custom per-site plugins
-    //if (customData) fileData = await require(`${cwd}/plugins/${customData}.js`).customData;
+  await getSrcImages(async images => {
+    images.forEach(image => {
+      // PLUGIN: Optimize .svg files with SVGO
+      if (optimizeSVGs !== false) optimizeSVG(image, 'image');
+      // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
+      if (optimizeImages !== false) compressAndNextGen(image);
+    })
+  });
 
-    optimizeImages();
+  await getSrcFiles(async files => {
 
     // Run tasks on matched files
     await files.forEach(async (fileName) => {
@@ -55,19 +59,20 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-      // file.data = await fileData; // RMV THIS!!
-
       // CUSTOM PLUGINS: Run custom per-site plugins
-      await customPlugins();
+      await customPlugins(plugins);
 
       // PLUGIN: Replace `[data-include]` in files
       await replaceIncludes({file, allowType: ['.html']});
 
-      // PLUGIN: Replace `<img>` tags
-      await replaceImgTags({file, allowType: ['.html']});
-
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
       await replaceInline({file, allowType: ['.html']});
+
+      // PLUGIN: Replace <img> tags with <picture> elements
+      if (optimizeImages !== false) await replaceImgTags({file, allowType: ['.html']});
+
+      // PLUGIN: Optimize inline <svg>'s with SVGO
+      if (optimizeSVGs !== false) await optimizeSVG(file, 'inline');
 
       // PLUGIN: Babelify standalone JS files
       await babelify({file, allowType: ['.js','.html']});
@@ -75,19 +80,16 @@ async function build() {
       // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
       // because `/src` doesn't exist in `/dist`
-      replaceSrcPathForDev({file, allowType: ['.css','.html']});
+      await replaceSrcPathForDev({file, allowType: ['.css','.html']});
 
-      // WIP PLUGIN: Render all ES6 template strings 
-      // `siteData` imported from site-specifc ./config/data.js file
+      // PLUGIN: Render all ES6 template strings 
       await replaceTemplateStrings({file, allowType: ['.html']});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
-      setActiveLinks({file, allowType: ['.html']});
+      await setActiveLinks({file, allowType: ['.html']});
 
       // PLUGIN: Minify Source
-      minifySrc({file});
-
-      // utils.testSrc({file});
+      await minifySrc({file});
 
       // PLUGIN: Create directory from .html file
       if (convertPageToDirectory) createDirFromFile({file, allowType: ['.html'], excludePath: ['dist/index']});
