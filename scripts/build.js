@@ -25,7 +25,7 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
 
 // CONFIG
-const {convertPageToDirectory, plugins, optimizeSVGs, optimizeImages} = require(`${cwd}/config/main.js`);
+const {convertPageToDirectory, plugins, optimizeSVGs, optimizeImages, pagePerformanceTest} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
@@ -46,9 +46,9 @@ async function build() {
   /**
    * @description Generate fake pages for performance testing
    * 
-   * @param {Number} Number Number of pages to generate
+   * @param {Number} pagePerformanceTest Number of pages to generate
    */
-  // await generatePages(100); 
+  if (pagePerformanceTest > 0) await generatePages(pagePerformanceTest); 
 
   await getSrcImages(async images => {
     images.forEach(image => {
