@@ -14,37 +14,32 @@ const imageminPngquant = require('imagemin-pngquant');
 const fileloop = require('filehound');
 
 // Config
-const {customImgDir, customImgTypes, distPath} = require(`${cwd}/config/main.js`);
+const {customImgDir, customImgTypes, svgOpts} = require(`${cwd}/config/main.js`);
 
 // PLUGIN OPTIONS
 // -----------------------------
 const imgDir = `${cwd}/dist${customImgDir || '/assets/img'}`;
 const imgTypes = customImgTypes || ['jpg','jpeg','png'];
-const svgo = new SVGO({
+const svgoOpts = svgOpts || {
   plugins: [
     { removeDimensions: true },
     { removeViewBox: false },
     { removeUnknownsAndDefaults: true }
   ]
-});
+};
+const svgo = new SVGO(svgoOpts);
 
 
 // DEFINE
 // -----------------------------
-async function compressAndNextGen() {
-  imgTypes.forEach(type => {
-    fileloop.create().paths(imgDir).ext(type).find((err, files) => {
-      err ? console.log(err) : files.forEach(async function(file) {
-        if (validSource(file)) {
-          await compress(file, type);
-          await convertToWebp(file);
-        }
-      })
-    });
-  })
-}
 
-
+/**
+ * @description Get images and update HTML markup
+ * 
+ * @param {Object} file File object
+ * @param {Array} allowType Allowed files types
+ * @param {Array} disallowType Disallowed files types
+ */
 async function replaceImgTags({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
@@ -63,9 +58,15 @@ async function replaceImgTags({file, allowType, disallowType}) {
   
   file.src = utils.setSrc({dom});
   Logger.success(`Edited image markup in ${file.name}`);
-
 }
 
+
+/**
+ * @description Compress SVGs with svgo
+ * 
+ * @param {Object} file File object
+ * @param {String} type Type of file (image or html)
+ */
 async function optimizeSVG(file, type) {
   // Early Exit: Only allow `html` extensions
   if (file.ext !== 'html') return;
@@ -84,11 +85,15 @@ async function optimizeSVG(file, type) {
 }
 
 
+/**
+ * @description Convert <img> tags to <picture> elements
+ * 
+ * @param {Array} images Images queried with jsdom
+ * @param {String} file File object
+ */
 async function editMarkup(images, file) {
   images.forEach(el => {
     if (el.getAttribute('data-optimize') !== 'disabled') { 
-      Logger.system(`Editing img tags in ${file.name}`);
-
       const originalFileSource = el.getAttribute('src');
       if (validSource(originalFileSource)) {
         const webpFileSource = originalFileSource.replace(/\.[^/.]+$/, "");
@@ -100,7 +105,6 @@ async function editMarkup(images, file) {
         for (let p in attrs) attributes += `${p}="${attrs[p]}"`;
 
         if (typesToConvert.includes(originalFiletype) && !el.parentNode !== 'picture') {
-          Logger.warning(`${file.name} will be edited`);
           let markup = 
             `<picture>
               <source srcset="${webpFileSource}.webp" type="image/webp">
@@ -126,7 +130,11 @@ function validSource(src) {
   );
 }
 
-
+/**
+ * @description Compress inline svgs with svgo
+ * 
+ * @param {Array} svgs Svgs queried with jsdom
+ */
 async function compressInlineSVGs(svgs) {
   svgs.forEach(el => {
     if (el.getAttribute('data-optimize') !== 'disabled') {
@@ -138,47 +146,45 @@ async function compressInlineSVGs(svgs) {
   });
 }
 
+// TODO: Remove filehound
+async function compressAndNextGen(image) {
+  if (validSource(image)) {
+    await compress(image, 'other');
+    await convertToWebp(image);
+  }
+}
 
-async function compress(file, type) {
-  const output = file.replace(/\/[^/]+$/, "");
-  
-	// skip sys tmp files
-  if (file.indexOf('/tmp/') > -1) return;
-  
+// compress with imagemin
+async function compress(image, type) {
+  const output = image.replace(/\/[^/]+$/, "");  
 	// raster image? compress appropriately
 	if (type !== 'svg') {
-		imagemin([file], output, {
+		imagemin([image], output, {
 			plugins: [
 				imageminMozjpeg({ quality: 80 }),
 				imageminPngquant({ quality: '65-80' })
 			]
 		})
 	} else {
-		imagemin([file], output, {
+		imagemin([image], output, {
 			use: [
-				imageminSvgo({
-					plugins: [
-						{ removeHiddenElems: false },
-						{ removeDimensions: true },
-						{ removeViewBox: false }
-					]
-				})
+				imageminSvgo(svgoOpts)
 			]
 		})
   }
-  Logger.success(`${file} optimized.`);
+  Logger.success(`${image} optimized.`);
 }
 
 
 // convert to webp
-async function convertToWebp(file) {
-	const output = file.replace(/\/[^/]+$/, "");
-	imagemin([file], output, {
+async function convertToWebp(image) {
+	const output = image.replace(/\/[^/]+$/, "");
+	imagemin([image], output, {
 		use: [
 			imageminWebp({ quality: 80 })
 		]
   })
-  Logger.success(`${file} converted to webp.`);
+  Logger.success(`${image} converted to webp.`);
 }
 
 
