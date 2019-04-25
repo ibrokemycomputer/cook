@@ -34,7 +34,7 @@ async function replaceTemplateStrings({file, allowType, disallowType}) {
    */ 
   try {
     const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
-    const compiled = compile(decode(file.src), dataKeys)(...dataValues);
+    const compiled = compile(file.src, dataKeys)(...dataValues);
 
     // Store the new file source
     file.src = compiled;
