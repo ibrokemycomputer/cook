@@ -2,11 +2,12 @@
 
 1. **More documentation!**/ comments
 2. HTML Entities / ignore wrapper for template strings
-3. Testing
+3. Test need for git delta diffing vs building entire site (100 pages/files, 500, 1000, etc)
+4. Testing
 
 ## Site
 
-Image optimizer.  
+[WIP] Image optimizer.  
 Some sort of `noscript` warning.  
 A no-css warning/fallback.  
 Do something if user has images disabled.  

@@ -37,11 +37,12 @@ const opts = babelOpts || {
 // -----------------------------
 
 /**
- * @description Compile JS files to ES5 and modifiy HTML <script> markup
+ * @description Compile JS files to ES5 and modifiy HTML script tag markup
  * 
- * @param {Object} file File object
- * @param {Array} allowType Allowed files types
- * @param {Array} disallowType Disallowed files types
+ * @param {Object} Obj Deconstructed object
+ * @param {Object} Obj.file File object
+ * @param {Array} [Obj.allowType] Allowed files types
+ * @param {Array} [Obj.disallowType] Disallowed files types
  */
 async function babelify({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
@@ -78,7 +79,7 @@ async function createEs5File(file) {
 
 
 /**
- * @description Edit <script> tag markup if they do not have `data-inline` or `data-compile="disabled"`
+ * @description Edit script tag markup if they do not have `data-inline` or `data-compile="disabled"`
  * 
  * @param {Object} file File object
  */

@@ -36,9 +36,10 @@ const svgo = new SVGO(svgoOpts);
 /**
  * @description Get images and update HTML markup
  * 
- * @param {Object} file File object
- * @param {Array} allowType Allowed files types
- * @param {Array} disallowType Disallowed files types
+ * @param {Object} Obj Deconstructed object
+ * @param {Object} Obj.file File object
+ * @param {Array} Obj.allowType Allowed files types
+ * @param {Array} Obj.disallowType Disallowed files types
  */
 async function replaceImgTags({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
@@ -65,7 +66,7 @@ async function replaceImgTags({file, allowType, disallowType}) {
  * @description Compress SVGs with svgo
  * 
  * @param {Object} file File object
- * @param {String} type Type of file (image or html)
+ * @param {String} [type] Type of file (image or html)
  */
 async function optimizeSVG(file, type) {
   // Early Exit: Only allow `html` extensions

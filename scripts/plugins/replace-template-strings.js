@@ -8,14 +8,14 @@
 const cwd = process.cwd();
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
-const decode = require('ent/decode'); // JSDom HTML entity band-aid
 
 /**
  * @description Converts file into a function and returns the rendered value as the file source
  * 
- * @param {Object} file File object
- * @param {Array} allowType Allowed files types
- * @param {Array} disallowType Disallowed files types
+ * @param {Object} Obj Deconstructed object
+ * @param {Object} Obj.file File object
+ * @param {Array} [Obj.allowType] Allowed files types
+ * @param {Array} [Obj.disallowType] Disallowed files types
  */
 async function replaceTemplateStrings({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
@@ -32,14 +32,19 @@ async function replaceTemplateStrings({file, allowType, disallowType}) {
    * Essentially we pass in the HTML source string, wrap it in backticks, then create a 
    * 'Function' that returns the source back with the template string rendered  
    */ 
-  const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
-  const compiled = compile(decode(file.src), dataKeys)(...dataValues);
+  try {
+    const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
+    const compiled = compile(decode(file.src), dataKeys)(...dataValues);
 
-  // Store the new file source
-  file.src = compiled;
+    // Store the new file source
+    file.src = compiled;
 
-  // Show terminal message: Done
-  Logger.success(`${file.path} - Replaced template strings`);
+    // Show terminal message: Done
+    Logger.success(`${file.path} - Replaced template strings`);
+  } catch (err) {
+    Logger.error(`${file.path} - Error replacing template strings: 
+    ${err}`);
+  }
 }
 
 // EXPORT

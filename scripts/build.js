@@ -62,6 +62,9 @@ async function build() {
       // CUSTOM PLUGINS: Run custom per-site plugins
       await customPlugins(plugins);
 
+      // PLUGIN: Render all ES6 template strings 
+      await replaceTemplateStrings({file, allowType: ['.html']});
+
       // PLUGIN: Replace `[data-include]` in files
       await replaceIncludes({file, allowType: ['.html']});
 
@@ -81,9 +84,6 @@ async function build() {
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
       // because `/src` doesn't exist in `/dist`
       await replaceSrcPathForDev({file, allowType: ['.css','.html']});
-
-      // PLUGIN: Render all ES6 template strings 
-      await replaceTemplateStrings({file, allowType: ['.html']});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       await setActiveLinks({file, allowType: ['.html']});
