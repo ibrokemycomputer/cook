@@ -1,7 +1,7 @@
 # TODO
 
 1. **More documentation!**/ comments
-2. HTML Entities / ignore wrapper for template strings
+2. try/catch?
 3. Test need for git delta diffing vs building entire site (100 pages/files, 500, 1000, etc)
 4. Testing
 
@@ -15,7 +15,6 @@ Page transitions/app-shell.
 
 ### Plugins
 
-* Add image optimization plugin
 * SCSS plugin?
 
 ### Other

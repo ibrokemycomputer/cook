@@ -4,6 +4,9 @@ const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs');
 const utils = require(`./utils/util.js`);
+const Logger = require(`./utils/logger.js`);
+const {generatePages} = require('./utils/performance');
+
 
 // PLUGINS
 // -----------------------------
@@ -39,6 +42,13 @@ async function build() {
 
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
+
+  /**
+   * @description Generate fake pages for performance testing
+   * 
+   * @param {Number} Number Number of pages to generate
+   */
+  // await generatePages(100); 
 
   await getSrcImages(async images => {
     images.forEach(image => {
@@ -98,7 +108,8 @@ async function build() {
       fs.writeFileSync(file.path, file.src);
 
     });
-  }); 
+  });
+
 };
 
 // STEP 3: Profit??
