@@ -16,8 +16,8 @@ const watchFiles = watch && watch.length
   : [
     '/assets/css/*.css',
     '/**/*.html',
-    '/assets/scripts/plugin/**/*.css',
-    '/assets/scripts/plugin/**/*.js',
+    '/assets/plugin/**/*.css',
+    '/assets/plugin/**/*.js',
   ];
 
 // INIT BROWSER-SYNC SERVER
