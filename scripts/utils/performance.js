@@ -16,4 +16,4 @@ async function generatePages(num) {
 
 // EXPORT
 // -----------------------------
-module.exports = generatePages;
+module.exports = {generatePages};
