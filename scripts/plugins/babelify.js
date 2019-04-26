@@ -70,7 +70,7 @@ async function createEs5File(file) {
 
   await fs.copyFile(file.path, es5Path, async err => {
     if (err) throw err;
-    fs.writeFile(es5Path, await babel.transformFileSync(file, opts).code, err => {
+    fs.writeFile(es5Path, await babel.transformFileSync(file.path, opts).code, err => {
       if (err) throw err;
       Logger.success(`${file.path} - Copied to ${es5Path} and 'babelified'`);
     }); 
