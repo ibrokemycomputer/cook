@@ -70,10 +70,12 @@ async function createEs5File(file) {
 
   await fs.copyFile(file.path, es5Path, async err => {
     if (err) throw err;
-    fs.writeFile(es5Path, await babel.transformFileSync(file.path, opts).code, err => {
-      if (err) throw err;
-      Logger.success(`${file.path} - Copied to ${es5Path} and 'babelified'`);
-    }); 
+    if (!file.path.includes('.min.')) {
+      fs.writeFile(es5Path, await babel.transformFileSync(file.path, opts).code, err => {
+        if (err) throw err;
+        Logger.success(`${file.path} - Copied to ${es5Path} and 'babelified'`);
+      }); 
+    }
   });
 }
 
@@ -91,12 +93,9 @@ function addES5Markup(file) {
 
   let source;
   scripts.forEach(script => {
-    source = script.getAttribute('src');
     // If we have a src and the tag is not inlined or set to skip build (babel)
-    if (source 
-      && script.getAttribute('inline') !== ''
-      && script.getAttribute('data-inline') !== ''
-      && script.getAttribute('data-build') !== 'disabled') {
+    if (canCompileScript(script)) {
+      let source = script.getAttribute('src');
       // Remove `.js` extension
       source = source.substr(0,source.length-3);
       // Add `type=module` attribute for modern browsers
@@ -109,6 +108,21 @@ function addES5Markup(file) {
       Logger.success(`${file.path} - Added ES5 support`);
     }
   });
+}
+
+// HELPERS
+// -----------------------------
+function canCompileScript(script) {
+  let source = script.getAttribute('src');
+  return (source 
+  && !source.includes('//')
+  && !source.includes('.min.')
+  && !source.includes('www')
+  && !source.includes('vendor/')
+  && script.getAttribute('inline') !== ''
+  && script.getAttribute('data-inline') !== ''
+  && script.getAttribute('data-build') !== 'disabled') 
+  ? true : false;
 }
 
 
