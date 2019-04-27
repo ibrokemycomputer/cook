@@ -24,7 +24,8 @@ async function setActiveLinks({file, allowType, disallowType}) {
 
   // Find <a> tags and add active state 
   // if their [href] matches the current page url
-  const $links = dom.window.document.querySelectorAll('a');
+  // Note: Using `a[href]` instead of just `a` as selector, since a user may omit the `[href]` attribute
+  const $links = dom.window.document.querySelectorAll('a[href]');
   $links.forEach((link,i) => setActive({file, link}));
 
   // Store updated file source
