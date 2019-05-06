@@ -15,12 +15,12 @@ const {distPath} = require(`${cwd}/config/main.js`);
 // DEFINE
 // -----------------------------
 async function cleanupDist() {
-
   // Remove `/dist` (fails silently if not there as that is the intended result)
-  rimraf.sync(`${distPath}/includes`);
+  rimraf(`${distPath}/includes`, cb);
+}
 
-  // Show terminal message: Done
-  Logger.success (`/${distPath}/includes removed`);
+function cb() {
+  Logger.success(`/${distPath}/includes removed`);
 }
 
 

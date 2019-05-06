@@ -102,9 +102,6 @@ async function build() {
       // PLUGIN: Minify Source
       await minifySrc({file});
 
-      // PLUGIN: Remove /dist/includes after build
-      cleanupDist();
-
       // PLUGIN: Create directory from .html file
       if (convertPageToDirectory) createDirFromFile({file, allowType: ['.html'], excludePath: ['dist/index']});
       
@@ -113,6 +110,9 @@ async function build() {
 
     });
   });
+
+  // PLUGIN: Remove /dist/includes after build
+  cleanupDist();
 
 };
 
