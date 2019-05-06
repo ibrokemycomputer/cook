@@ -1,13 +1,12 @@
 # TODO
 
 1. **More documentation!**/ comments
-2. try/catch?
-3. Test need for git delta diffing vs building entire site (100 pages/files, 500, 1000, etc)
-4. Testing
+2. More config options
+3. Try/Catch blocks & more graceful error handling
+4. Testing (E2E, Unit?)
 
 ## Site
 
-[WIP] Image optimizer.  
 Some sort of `noscript` warning.  
 A no-css warning/fallback.  
 Do something if user has images disabled.  
@@ -34,10 +33,8 @@ Page transitions/app-shell.
 
 ## Babel
 
-~~Fix issue of needing to install babel packages in the site repo!~~ (check this on a Mac before removing)
-
 1. [HOLD] Babelify inline scripts?
 
 ## Dependencies
 
-Replace `rimraf` with a simple function.
+1. Replace `rimraf` with a simple function?

@@ -15,7 +15,7 @@ const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // Config
-const {srcPath,distPath} = require(`${cwd}/config/main.js`);
+const {srcPath,distPath,minifyHtmlConfigCustom} = require(`${cwd}/config/main.js`);
 
 
 // PLUGIN OPTIONS
@@ -26,7 +26,7 @@ const minifyCssConfig = {
 };
 
 // Minfiy HTML
-const minifyHtmlConfig = {
+const minifyHtmlConfig = minifyHtmlConfigCustom || {
   collapseWhitespace: true,
   removeAttributeQuotes: true,
   removeComments: true,

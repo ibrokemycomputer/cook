@@ -11,6 +11,7 @@ const {generatePages} = require('./utils/performance');
 // PLUGINS
 // -----------------------------
 const babelify = require('./plugins/babelify');
+const cleanupDist = require('./plugins/cleanup-dist');
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
@@ -100,6 +101,9 @@ async function build() {
 
       // PLUGIN: Minify Source
       await minifySrc({file});
+
+      // PLUGIN: Remove /dist/includes after build
+      cleanupDist();
 
       // PLUGIN: Create directory from .html file
       if (convertPageToDirectory) createDirFromFile({file, allowType: ['.html'], excludePath: ['dist/index']});
