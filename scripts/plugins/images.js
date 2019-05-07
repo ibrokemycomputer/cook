@@ -168,7 +168,7 @@ async function compress(image, type) {
 		imagemin([image], output, {
 			plugins: [
 				imageminMozjpeg({ quality: 80 }),
-				imageminPngquant({ quality: '65-80' })
+				imageminPngquant({ quality: [0.65, 0.8] })
 			]
 		})
 	} else {
