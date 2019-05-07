@@ -30,7 +30,7 @@ const minifyHtmlConfig = minifyHtmlConfigCustom || {
   collapseWhitespace: true,
   removeAttributeQuotes: true,
   removeComments: true,
-  removeRedundantAttributes: true,
+  removeRedundantAttributes: false,
   removeScriptTypeAttributes: true,
   removeStyleLinkTypeAttributes: true,
   useShortDoctype: true,

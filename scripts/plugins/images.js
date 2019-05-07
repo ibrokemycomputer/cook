@@ -24,7 +24,7 @@ const svgoOpts = svgOpts || {
   plugins: [
     { removeDimensions: true },
     { removeViewBox: false },
-    { removeUnknownsAndDefaults: true }
+    { removeUnknownsAndDefaults: false }
   ]
 };
 const svgo = new SVGO(svgoOpts);

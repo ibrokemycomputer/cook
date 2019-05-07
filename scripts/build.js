@@ -44,6 +44,9 @@ async function build() {
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
 
+  // CUSTOM PLUGINS: Run custom user plugins before file loop
+  await customPlugins({plugins: plugins.before});
+
   /**
    * @description Generate fake pages for performance testing
    * 
@@ -70,8 +73,8 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-      // CUSTOM PLUGINS: Run custom per-site plugins
-      await customPlugins(plugins);
+      // CUSTOM PLUGINS: Run custom user plugins during file loop
+      await customPlugins({file, plugins: plugins.default});
 
       // PLUGIN: Render all ES6 template strings 
       await replaceTemplateStrings({file, allowType: ['.html']});
@@ -110,6 +113,9 @@ async function build() {
 
     });
   });
+
+  // CUSTOM PLUGINS: Run custom user plugins after file loop
+  await customPlugins({plugins: plugins.after});
 
   // PLUGIN: Remove /dist/includes after build
   cleanupDist();
