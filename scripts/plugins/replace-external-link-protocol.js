@@ -20,6 +20,13 @@ replaceExternalLinkProtocol = replaceExternalLinkProtocol || {};
 
 // DEFINE
 // -----------------------------
+/**
+ * @description Replace non-protocol `www.` and `cdn.` link paths to avoid them being treated as relative links.
+ * @param {Object} obj - Deconstructed object
+ * @param {Object} obj.file - The current file info (name, extension, src, etc.)
+ * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
+ * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ */
 async function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});

@@ -1,3 +1,8 @@
+/**
+ * @file images.js
+ * @description Get images and update HTML markup
+ */
+
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
@@ -34,64 +39,6 @@ const svgo = new SVGO(svgoOpts);
 // -----------------------------
 
 /**
- * @description Get images and update HTML markup
- * 
- * @param {Object} Obj Deconstructed object
- * @param {Object} Obj.file File object
- * @param {Array} Obj.allowType Allowed files types
- * @param {Array} Obj.disallowType Disallowed files types
- */
-async function replaceImgTags({file, allowType, disallowType}) {
-  // Early Exit: File type not allowed
-  const allowed = utils.isAllowedType({file,allowType,disallowType});
-  if (!allowed) return;
-
-  // Early Exit: Do not replace files locally
-  if (process.env.NODE_ENV === 'development') return;
-
-  // Make source traversable with JSDOM
-  let dom = utils.jsdom.dom({src: file.src});
-
-  // Store all <img> tags
-  const images = dom.window.document.querySelectorAll(`img`);
-
-  await editMarkup(images, file);
-  
-  file.src = utils.setSrc({dom});
-  Logger.success(`Edited image markup in ${file.name}`);
-}
-
-
-/**
- * @description Compress SVGs with svgo
- * 
- * @param {Object} file File object
- * @param {String} [type] Type of file (image or html)
- */
-async function optimizeSVG(file, type) {
-  // Early Exit: Only allow `html` extensions
-  if (file.ext !== 'html') return;
-
-  // When SVG is an external call to a .svg file
-  if (type === 'image') {
-    compress(file, 'svg')
-  } 
-  // When SVG is inline in the markup
-  else {
-    // Make source traversable with JSDOM
-    let dom = utils.jsdom.dom({src: file.src});
-    // Store all <svg> tags
-    const svgs = dom.window.document.querySelectorAll(`svg`);
-    // Add `[xmlns:xlink="http://www.w3.org/1999/xlink"]` to each <svg> instance
-    // before trying to run SVGO, or it will throw a namespace error in terminal
-    svgs.forEach(s => s.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'));
-    await compressInlineSVGs(svgs);
-    Logger.success(`${file.name} inline SVGs optimized.`);
-  }
-}
-
-
-/**
  * @description Convert <img> tags to <picture> elements
  * 
  * @param {Array} images Images queried with jsdom
@@ -125,7 +72,69 @@ async function editMarkup(images, file) {
   })
 }
 
+/**
+ * @description Compress SVGs with svgo
+ * 
+ * @param {Object} file File object
+ * @param {String} [type] Type of file (image or html)
+ */
+async function optimizeSVG(file, type) {
+  // Early Exit: Only allow `html` extensions
+  if (file.ext !== 'html') return;
+  // When SVG is an external call to a .svg file
+  if (type === 'image') {
+    compress(file, 'svg')
+  } 
+  // When SVG is inline in the markup
+  else {
+    // Make source traversable with JSDOM
+    let dom = utils.jsdom.dom({src: file.src});
+    // Store all <svg> tags
+    const svgs = dom.window.document.querySelectorAll(`svg`);
+    // Add `[xmlns:xlink="http://www.w3.org/1999/xlink"]` to each <svg> instance
+    // before trying to run SVGO, or it will throw a namespace error in terminal
+    svgs.forEach(s => s.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'));
+    await compressInlineSVGs(svgs);
+    Logger.success(`${file.name} inline SVGs optimized.`);
+  }
+}
 
+/**
+ * @description Get images and update HTML markup
+ * @param {Object} obj - Deconstructed object
+ * @param {Object} obj.file - The current file info (name, extension, src, etc.)
+ * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
+ * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ */
+async function replaceImgTags({file, allowType, disallowType}) {
+  // Early Exit: File type not allowed
+  const allowed = utils.isAllowedType({file,allowType,disallowType});
+  if (!allowed) return;
+
+  // Early Exit: Do not replace files locally
+  if (process.env.NODE_ENV === 'development') return;
+
+  // Make source traversable with JSDOM
+  let dom = utils.jsdom.dom({src: file.src});
+
+  // Store all <img> tags
+  const images = dom.window.document.querySelectorAll(`img`);
+
+  await editMarkup(images, file);
+  
+  file.src = utils.setSrc({dom});
+  Logger.success(`Edited image markup in ${file.name}`);
+}
+
+
+// HELPER METHODS
+// -----------------------------
+
+/**
+ * @description TODO
+ * @param {String} src - The source path string
+ * @internal
+ */
 function validSource(src) {
   return ( 
     !src.includes('android-chrome') &&
@@ -138,8 +147,8 @@ function validSource(src) {
 
 /**
  * @description Compress inline svgs with svgo
- * 
- * @param {Array} svgs Svgs queried with jsdom
+ * @param {Array} svgs - Svgs queried with jsdom
+ * @internal
  */
 async function compressInlineSVGs(svgs) {
   svgs.forEach(el => {
@@ -153,6 +162,11 @@ async function compressInlineSVGs(svgs) {
 }
 
 // TODO: Remove filehound
+/**
+ * @description TODO
+ * @param TODO
+ * @internal
+ */
 async function compressAndNextGen(image) {
   if (validSource(image)) {
     await compress(image, 'other');
@@ -160,7 +174,12 @@ async function compressAndNextGen(image) {
   }
 }
 
-// compress with imagemin
+/**
+ * @description Compress with imagemin
+ * @param TODO
+ * @param TODO
+ * @internal
+ */
 async function compress(image, type) {
   const output = image.replace(/\/[^/]+$/, "");  
 	// raster image? compress appropriately
@@ -181,8 +200,11 @@ async function compress(image, type) {
   Logger.success(`${image} optimized.`);
 }
 
-
-// convert to webp
+/**
+ * @description Convert to webp
+ * @param TODO
+ * @internal
+ */
 async function convertToWebp(image) {
 	const output = image.replace(/\/[^/]+$/, "");
 	imagemin([image], output, {
@@ -194,4 +216,6 @@ async function convertToWebp(image) {
 }
 
 
+// EXPORT
+// -----------------------------
 module.exports = {compressAndNextGen, replaceImgTags, optimizeSVG};
