@@ -2,6 +2,11 @@ const cwd = process.cwd();
 const Logger = require(`./logger.js`);
 const fs = require('fs');
 
+/**
+ * @description Generate fake pages for performance testing
+ * @param {Number} num Number of pages to generate
+ * @private
+ */
 async function generatePages(num) {
 
   for (let i=0;i<num;i++) {

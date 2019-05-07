@@ -47,11 +47,7 @@ async function build() {
   // CUSTOM PLUGINS: Run custom user plugins before file loop
   await customPlugins({plugins: plugins.before});
 
-  /**
-   * @description Generate fake pages for performance testing
-   * 
-   * @param {Number} pagePerformanceTest Number of pages to generate
-   */
+  // Generate pages to test performance
   if (pagePerformanceTest > 0) await generatePages(pagePerformanceTest); 
 
   await getSrcImages(async images => {
