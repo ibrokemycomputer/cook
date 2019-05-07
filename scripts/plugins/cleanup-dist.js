@@ -25,7 +25,7 @@ async function cleanupDist() {
 
 function first() {
   delayTerminalMessage();
-  Logger.success(`${distPath}/includes removed`);
+  Logger.success(`/${distPath}/includes removed`);
 }
 
 function delayTerminalMessage() {
