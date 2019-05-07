@@ -24,7 +24,7 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
+const {compressAndNextGen, optimizeSVG, replaceImgTags} = require('./plugins/images.js');
 
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');

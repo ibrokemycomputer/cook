@@ -50,7 +50,7 @@ async function createDirFromFile({file, allowType, disallowType, excludePath}) {
   fs.writeFileSync(`${filePath}/index.html`, file.src);
 
   // Show terminal message: Done
-  Logger.success(`/${file.path} - Added [directory]: ${ chalk.green(filePath + '/index.html' ) }`);
+  Logger.success(`/${file.path} - Added [directory]: ${ chalk.green('/' + filePath + '/index.html' ) }`);
 }
 
 // EXPORT

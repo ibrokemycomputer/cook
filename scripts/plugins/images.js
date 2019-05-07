@@ -19,7 +19,8 @@ const imageminPngquant = require('imagemin-pngquant');
 const fileloop = require('filehound');
 
 // Config
-const {customImgDir, customImgTypes, svgOpts} = require(`${cwd}/config/main.js`);
+// Config
+const {customImgDir, customImgTypes, distPath, svgOpts} = require(`${cwd}/config/main.js`);
 
 // PLUGIN OPTIONS
 // -----------------------------
@@ -95,7 +96,7 @@ async function optimizeSVG(file, type) {
     // before trying to run SVGO, or it will throw a namespace error in terminal
     svgs.forEach(s => s.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'));
     await compressInlineSVGs(svgs);
-    Logger.success(`${file.name} inline SVGs optimized.`);
+    Logger.success(`/${distPath}/${file.name}.${file.ext} - Inline SVGs Optimized.`);
   }
 }
 
@@ -197,7 +198,7 @@ async function compress(image, type) {
 			]
 		})
   }
-  Logger.success(`${image} optimized.`);
+  Logger.success(`/${image} optimized.`);
 }
 
 /**
@@ -212,7 +213,7 @@ async function convertToWebp(image) {
 			imageminWebp({ quality: 80 })
 		]
   })
-  Logger.success(`${image} converted to webp.`);
+  Logger.success(`/${image} converted to webp.`);
 }
 
 
