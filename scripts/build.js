@@ -27,7 +27,14 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
 
 // CONFIG
-const {convertPageToDirectory, optimizeSVGs, optimizeImages, pagePerformanceTest, plugins, replaceExternalLinkProtocol = {enabled:true}, } = require(`${cwd}/config/main.js`);
+const {
+  convertPageToDirectory, 
+  optimizeSVGs, 
+  optimizeImages, 
+  pagePerformanceTest, 
+  plugins = {before: [], default: [], after: []}, 
+  replaceExternalLinkProtocol = {enabled:true}, 
+} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');

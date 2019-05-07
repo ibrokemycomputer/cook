@@ -22,12 +22,15 @@ Page transitions/app-shell.
 
 ## Build
 
+* Retina images
+
 * Double check all settings (make sure they dont fail if unset, and document defaults/requirements)
 
 * Currently, when making a change, all files are checked/updated. Instead, need to only update `/dist` with delta changes.
 
 * Fix nested-page extensions and/or remove 'auto-generate folder + `index.html`' feature
-  * Both pages resolve/load, which will cause analytics issues
+
+* Both pages resolve/load, which will cause analytics issues
 
 * Add some file type checking/error handling to the template string replacement
 
