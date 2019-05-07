@@ -72,7 +72,7 @@ function replaceMissingProtocol({file, link}) {
   if (linkPathSplit.indexOf('localhost') === -1) return;
   link.href = `http://${linkPathSplit[linkPathSplit.length-1]}`;
   // Show terminal message
-  Logger.success(`${file.path} - Added 'http://' to [href="${linkPathSplit[linkPathSplit.length-1]}"]: ${ chalk.green(link.href) }`);
+  Logger.success(`/${file.path} - Added 'http://' to [href="${linkPathSplit[linkPathSplit.length-1]}"]: ${ chalk.green(link.href) }`);
 }
 
 // EXPORT

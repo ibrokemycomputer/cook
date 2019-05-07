@@ -88,6 +88,9 @@ async function getSrcFiles(cb) {
  * @private
  */
 async function getSrcImages(cb) {
+  // Show terminal message: Start
+  Logger.header('\nImage Tasks');
+  
   // Disallowed page types
   // /dist/assets/scripts/vendor - Skip 3rd-party vendor images
   const defaultExcludedPaths = [new RegExp(`${distPath}\/assets\/scripts\/vendor`)];

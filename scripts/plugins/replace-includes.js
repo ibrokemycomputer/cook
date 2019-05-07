@@ -61,7 +61,7 @@ async function replaceIncludes({file, allowType, disallowType}) {
         // Remove placeholder element from DOM
         el.remove();
         // Show terminal message
-        Logger.success(`${file.path} - Replaced [${hasInclude.type}]: ${ chalk.green(hasInclude.path) }`);
+        Logger.success(`/${file.path} - Replaced [${hasInclude.type}]: ${ chalk.green(hasInclude.path) }`);
       }
       catch (error) {
         errorLabel = `Invalid include path in '${file.path}`;

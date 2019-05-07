@@ -58,7 +58,7 @@ function addES5Markup(file) {
       // Store updated file source
       file.src = utils.setSrc({dom});
 
-      Logger.success(`${file.path} - Added ES5 support`);
+      Logger.success(`/${file.path} - Added ES5 support`);
     }
   });
 }
@@ -98,7 +98,7 @@ async function createEs5File(file) {
     if (!file.path.includes('.min.')) {
       fs.writeFile(es5Path, await babel.transformFileSync(file.path, opts).code, err => {
         if (err) throw err;
-        Logger.success(`${file.path} - Copied to ${es5Path} and 'babelified'`);
+        Logger.success(`/${file.path} - Copied to ${es5Path} and 'babelified'`);
       }); 
     }
   });

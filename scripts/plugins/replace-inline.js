@@ -64,7 +64,7 @@ function replaceLink({links, file}) {
     el.insertAdjacentHTML('beforebegin', `<style>${replaceSrc}</style>`);
     el.remove();
     // Show terminal message
-    Logger.success(`${file.path} - Replaced link[${utils.attr.inline}]: ${ chalk.green(href) }`);
+    Logger.success(`/${file.path} - Replaced link[${utils.attr.inline}]: ${ chalk.green(href) }`);
   });
 }
 
@@ -78,7 +78,7 @@ function replaceScript({scripts, file}) {
     el.insertAdjacentHTML('beforebegin', `<script>${replaceSrc}</script>`);
     el.remove();
     // Show terminal message
-    Logger.success(`${file.path} - Replaced script[${utils.attr.inline}]: ${ chalk.green(el.getAttribute('src')) }`);
+    Logger.success(`/${file.path} - Replaced script[${utils.attr.inline}]: ${ chalk.green(el.getAttribute('src')) }`);
   });
 }
 

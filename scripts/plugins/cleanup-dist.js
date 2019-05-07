@@ -17,9 +17,21 @@ const {distPath} = require(`${cwd}/config/main.js`);
 // -----------------------------
 async function cleanupDist() {
   // Remove `/dist/includes` (fails silently if not there as that is the intended result)
-  rimraf(`${distPath}/includes`, () => Logger.success(`/${distPath}/includes removed`));
+  rimraf(`${distPath}/includes`, first);
 }
 
+// HELPER METHODS
+// -----------------------------
+
+function first() {
+  delayTerminalMessage();
+  Logger.success(`${distPath}/includes removed`);
+}
+
+function delayTerminalMessage() {
+  // Show terminal message: Start
+  Logger.header(`\nCleanup /${distPath}`);
+}
 
 // EXPORT
 // -----------------------------

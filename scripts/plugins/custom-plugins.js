@@ -21,8 +21,6 @@ const Logger = require(`../utils/logger.js`);
  * These are pulled from the `main.js` config file, and are run in 3 build positions: `before`, `after` and during the files loop (`default`).
  */
 async function customPlugins({data = {}, file, log, plugins}) {
-  // Show terminal message: Start
-  if (log) Logger.header(`\nRunning Custom-User Plugins`);
   // Early Exit: No Plugins
   if (!plugins) return;
   // Execute each user plugin
@@ -31,8 +29,6 @@ async function customPlugins({data = {}, file, log, plugins}) {
     let plg = String(fn);
     // Execute plugin method if it exists
     if (plugin[plg]) plugin[plg]({data, file}); 
-    // Show terminal message: Done
-    Logger.success(fn);
   });
 }
 

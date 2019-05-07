@@ -60,7 +60,7 @@ function replacePath({file, matches}) {
     newPath = m.slice(srcPath.length+1);
     file.src = file.src.replace(m, newPath);
     // Show terminal message
-    Logger.success(`${file.path} - Replaced [${m.slice(0, -2)}]: ${ chalk.green(newPath.slice(0, -2)) }`);
+    Logger.success(`/${file.path} - Replaced [${m.slice(0, -2)}]: ${ chalk.green(newPath.slice(0, -2)) }`);
   });
   return file.src;
 }

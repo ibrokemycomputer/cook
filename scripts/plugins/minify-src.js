@@ -70,7 +70,7 @@ function minifySrc({file, allowType, disallowType}) {
   file.src = newSrc;
 
   // Show terminal message
-  Logger.success(`${file.path} - Minified`);
+  Logger.success(`/${file.path} - Minified`);
 }
 
 
