@@ -4,10 +4,14 @@ const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs');
 const utils = require(`./utils/util.js`);
+const Logger = require(`./utils/logger.js`);
+const {generatePages} = require('./utils/performance');
+
 
 // PLUGINS
 // -----------------------------
 const babelify = require('./plugins/babelify');
+const cleanupDist = require('./plugins/cleanup-dist');
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
@@ -23,7 +27,14 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
 
 // CONFIG
-const {convertPageToDirectory, plugins, optimizeSVGs, optimizeImages, replaceExternalLinkProtocol = {enabled:true}, } = require(`${cwd}/config/main.js`);
+const {
+  convertPageToDirectory, 
+  optimizeSVGs, 
+  optimizeImages, 
+  pagePerformanceTest, 
+  plugins = {before: [], default: [], after: []}, 
+  replaceExternalLinkProtocol = {enabled:true}, 
+} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
@@ -40,6 +51,12 @@ async function build() {
 
   // PLUGIN: Copy `/src` to `/dist`
   await copySrc();
+
+  // CUSTOM PLUGINS: Run custom user plugins before file loop
+  await customPlugins({plugins: plugins.before});
+
+  // Generate pages to test performance
+  if (pagePerformanceTest > 0) await generatePages(pagePerformanceTest); 
 
   await getSrcImages(async images => {
     images.forEach(image => {
@@ -60,8 +77,11 @@ async function build() {
       // Then write back the updated/modified source to the file at the end
       let file = await getSrcConfig({fileName});
 
-      // CUSTOM PLUGINS: Run custom per-site plugins
-      await customPlugins(plugins);
+      // CUSTOM PLUGINS: Run custom user plugins during file loop
+      await customPlugins({file, plugins: plugins.default});
+
+      // PLUGIN: Render all ES6 template strings 
+      await replaceTemplateStrings({file, allowType: ['.html']});
 
       // PLUGIN: Add missing `http://` to user-added external link `[href]` values (`[href="www.xxxx.com"]`)
       if (replaceExternalLinkProtocol.enabled) await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
@@ -85,9 +105,6 @@ async function build() {
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
       // because `/src` doesn't exist in `/dist`
       await replaceSrcPathForDev({file, allowType: ['.css','.html']});
-
-      // PLUGIN: Render all ES6 template strings 
-      await replaceTemplateStrings({file, allowType: ['.html']});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       await setActiveLinks({file, allowType: ['.html']});
@@ -102,7 +119,14 @@ async function build() {
       fs.writeFileSync(file.path, file.src);
 
     });
-  }); 
+  });
+
+  // CUSTOM PLUGINS: Run custom user plugins after file loop
+  await customPlugins({plugins: plugins.after});
+
+  // PLUGIN: Remove /dist/includes after build
+  cleanupDist();
+
 };
 
 // STEP 3: Profit??
