@@ -18,6 +18,15 @@ const {distPath} = require(`${cwd}/config/main.js`);
 
 // DEFINE
 // -----------------------------
+/**
+ * @description Change all `xxxx.html` pages into `xxxx/index.html` versions so you
+ * don't need to show extensions in the url
+ * @param {Object} obj - Deconstructed object
+ * @param {Object} obj.file - The current file info (name, extension, src, etc.)
+ * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
+ * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ * @param {Array} [obj.excludePath] - Disallowed certain files (Opt-out)
+ */
 async function createDirFromFile({file, allowType, disallowType, excludePath}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});

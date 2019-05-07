@@ -14,6 +14,13 @@ const {distPath} = require(`${cwd}/config/main.js`);
 
 // DEFINE
 // -----------------------------
+/**
+ * @description Add `[data-active]` state to `<a>` tags whose `[href]` value matches the current page
+ * @param {Object} obj - Deconstructed object
+ * @param {Object} obj.file - The current file info (name, extension, src, etc.)
+ * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
+ * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ */
 async function setActiveLinks({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});

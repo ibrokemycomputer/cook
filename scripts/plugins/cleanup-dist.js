@@ -12,15 +12,12 @@ const Logger = require(`../utils/logger.js`);
 // Config
 const {distPath} = require(`${cwd}/config/main.js`);
 
+
 // DEFINE
 // -----------------------------
 async function cleanupDist() {
-  // Remove `/dist` (fails silently if not there as that is the intended result)
-  rimraf(`${distPath}/includes`, cb);
-}
-
-function cb() {
-  Logger.success(`/${distPath}/includes removed`);
+  // Remove `/dist/includes` (fails silently if not there as that is the intended result)
+  rimraf(`${distPath}/includes`, () => Logger.success(`/${distPath}/includes removed`));
 }
 
 

@@ -42,6 +42,13 @@ const minifyJsConfig = {};
 
 // DEFINE
 // -----------------------------
+/**
+ * @description Remove `/dist` and recreate it
+ * @param {Object} obj - Deconstructed object
+ * @param {Object} obj.file - The current file info (name, extension, src, etc.)
+ * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
+ * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ */
 function minifySrc({file, allowType, disallowType}) {
 
   // Early Exit: File type not allowed

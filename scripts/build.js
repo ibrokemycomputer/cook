@@ -26,7 +26,10 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 
 const {compressAndNextGen, replaceImgTags, optimizeSVG} = require('./plugins/images.js');
 
-// CONFIG
+// GET SOURCE
+const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
+
+// USER 'MAIN.JS' CONFIG
 const {
   convertPageToDirectory, 
   optimizeSVGs, 
@@ -36,8 +39,11 @@ const {
   replaceExternalLinkProtocol = {enabled:true}, 
 } = require(`${cwd}/config/main.js`);
 
-// GET SOURCE
-const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
+// USER 'DATA.JS' CONFIG
+// Get user's data config object. We pass it into plugins (when necessary) 
+// so that additional data can be added from plugins instead of needing 
+// to manually added everything to `/config/data.js`
+const data = require(`${cwd}/config/data.js`);
 
 
 // BUILD
@@ -53,11 +59,12 @@ async function build() {
   await copySrc();
 
   // CUSTOM PLUGINS: Run custom user plugins before file loop
-  await customPlugins({plugins: plugins.before});
+  await customPlugins({data, plugins: plugins.before, log: true });
 
-  // Generate pages to test performance
+  // PERFORMANCE: Generate X number of pages to test performance
   if (pagePerformanceTest > 0) await generatePages(pagePerformanceTest); 
 
+  // THE IMAGES LOOP
   await getSrcImages(async images => {
     images.forEach(image => {
       // PLUGIN: Optimize .svg files with SVGO
@@ -67,6 +74,7 @@ async function build() {
     })
   });
 
+  // THE FILES LOOP
   await getSrcFiles(async files => {
 
     // Run tasks on matched files
@@ -78,10 +86,10 @@ async function build() {
       let file = await getSrcConfig({fileName});
 
       // CUSTOM PLUGINS: Run custom user plugins during file loop
-      await customPlugins({file, plugins: plugins.default});
+      await customPlugins({file, data, plugins: plugins.default});
 
       // PLUGIN: Render all ES6 template strings 
-      await replaceTemplateStrings({file, allowType: ['.html']});
+      await replaceTemplateStrings({file, data, allowType: ['.html']});
 
       // PLUGIN: Add missing `http://` to user-added external link `[href]` values (`[href="www.xxxx.com"]`)
       if (replaceExternalLinkProtocol.enabled) await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
@@ -122,12 +130,10 @@ async function build() {
   });
 
   // CUSTOM PLUGINS: Run custom user plugins after file loop
-  await customPlugins({plugins: plugins.after});
+  await customPlugins({data, plugins: plugins.after, log: true });
 
   // PLUGIN: Remove /dist/includes after build
   cleanupDist();
 
 };
-
-// STEP 3: Profit??
 build();

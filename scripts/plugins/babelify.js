@@ -14,9 +14,7 @@ const fs = require('fs');
 // Config
 const {babelOpts} = require(`${cwd}/config/main.js`);
 
-
-// PLUGIN OPTIONS
-// -----------------------------
+// Plugin options
 const opts = babelOpts || {
   "plugins": ["@babel/plugin-transform-classes"],
   "presets": [
@@ -37,52 +35,7 @@ const opts = babelOpts || {
 // -----------------------------
 
 /**
- * @description Compile JS files to ES5 and modifiy HTML script tag markup
- * 
- * @param {Object} Obj Deconstructed object
- * @param {Object} Obj.file File object
- * @param {Array} [Obj.allowType] Allowed files types
- * @param {Array} [Obj.disallowType] Disallowed files types
- */
-async function babelify({file, allowType, disallowType}) {
-  // Early Exit: File type not allowed
-  const allowed = utils.isAllowedType({file,allowType,disallowType});
-  if (!allowed) return;
-  // Early Exit: Don't minify in development
-  if (process.env.NODE_ENV === 'development') return;
-
-  if (file.ext === 'js') { // Runs on .js files
-    createEs5File(file);
-  } else { // Runs on .html files
-    addES5Markup(file);
-  }
-}
-
-
-/**
- * @description Creates ES5 version of a JS file
- * 
- * @param {Object} file File object
- */
-async function createEs5File(file) {
-  // Create ES5 filename (filename.es5.js)
-  const es5Path = `${file.path.slice(0, file.path.length-file.ext.length)}es5.${file.ext}`;
-
-  await fs.copyFile(file.path, es5Path, async err => {
-    if (err) throw err;
-    if (!file.path.includes('.min.')) {
-      fs.writeFile(es5Path, await babel.transformFileSync(file.path, opts).code, err => {
-        if (err) throw err;
-        Logger.success(`${file.path} - Copied to ${es5Path} and 'babelified'`);
-      }); 
-    }
-  });
-}
-
-
-/**
  * @description Edit script tag markup if they do not have `data-inline` or `data-compile="disabled"`
- * 
  * @param {Object} file File object
  */
 function addES5Markup(file) {
@@ -110,8 +63,55 @@ function addES5Markup(file) {
   });
 }
 
-// HELPERS
+/**
+ * @description Compile JS files to ES5 and modifiy HTML script tag markup
+ * @param {Object} Obj Deconstructed object
+ * @param {Object} Obj.file File object
+ * @param {Array} [Obj.allowType] Allowed files types
+ * @param {Array} [Obj.disallowType] Disallowed files types
+ */
+async function babelify({file, allowType, disallowType}) {
+  // Early Exit: File type not allowed
+  const allowed = utils.isAllowedType({file,allowType,disallowType});
+  if (!allowed) return;
+  // Early Exit: Don't minify in development
+  if (process.env.NODE_ENV === 'development') return;
+
+  if (file.ext === 'js') { // Runs on .js files
+    createEs5File(file);
+  } else { // Runs on .html files
+    addES5Markup(file);
+  }
+}
+
+
+/**
+ * @description Creates ES5 version of a JS file
+ * @param {Object} file File object
+ */
+async function createEs5File(file) {
+  // Create ES5 filename (filename.es5.js)
+  const es5Path = `${file.path.slice(0, file.path.length-file.ext.length)}es5.${file.ext}`;
+
+  await fs.copyFile(file.path, es5Path, async err => {
+    if (err) throw err;
+    if (!file.path.includes('.min.')) {
+      fs.writeFile(es5Path, await babel.transformFileSync(file.path, opts).code, err => {
+        if (err) throw err;
+        Logger.success(`${file.path} - Copied to ${es5Path} and 'babelified'`);
+      }); 
+    }
+  });
+}
+
+// HELPER METHODS
 // -----------------------------
+
+/**
+ * @description TODO
+ * @param {Object} script - The `<script>` element
+ * @internal
+ */
 function canCompileScript(script) {
   let source = script.getAttribute('src');
   return (source 
