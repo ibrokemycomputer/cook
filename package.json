@@ -25,7 +25,6 @@
     "browser-sync": "^2.26.3",
     "chalk": "^2.4.1",
     "clean-css": "^4.2.1",
-    "ent": "^2.2.0",
     "filehound": "^1.17.0",
     "fs-extra": "^7.0.1",
     "html-minifier": "^3.5.21",
