@@ -246,7 +246,7 @@ function validatePageChange() {
   // Page was changed when using localhost BrowserSync live reloading (`npm run dev`)
   const changedDevPage = process.env.DEV_CHANGED_PAGE;
   // Was the changed page an include file?
-  const isInclude = changedDevPage && !!changedDevPage.match(/\/include/);
+  const isInclude = changedDevPage && !!changedDevPage.match(/\/(include)|(template)/);
   // Return true (valid) if it was a page change AND it wasn't an include file
   return changedDevPage && !isInclude;
 }
