@@ -29,7 +29,7 @@ function copySrc() {
     const changedSrcPath = changedPath;
     const changedDistPath = changedPath.replace(srcPath, distPath);
     // Show terminal message: Start
-    Logger.header(`\nCopy Changed Page`);
+    Logger.header(`\nCopied Updated Page`);
     // Copy changed page to `/dist` only
     fs.copySync(changedSrcPath, changedDistPath);
     // Show terminal message

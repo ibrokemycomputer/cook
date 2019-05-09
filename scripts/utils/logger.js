@@ -17,7 +17,7 @@ let types = {
 }
 
 // Mute logging if environment var set
-if (process.env.LOGGER_DISABLED) Object.keys(types).forEach(key => types[key] = () => ({}));
+if (!process.env.LOGGER) Object.keys(types).forEach(key => types[key] = () => ({}));
 
 
 // EXPORT
