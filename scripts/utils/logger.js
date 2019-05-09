@@ -2,9 +2,10 @@
 // ----------------------------------
 const chalk = require('chalk');
 
-// EXPORT
+
+// DEFINE
 // ----------------------------------
-module.exports = {
+let types = {
   break: () => console.log('\n'),
   done: message => console.log(chalk.magenta('» done') + chalk.gray(` | ${message}`)),
   error: message => console.log(chalk.red('error'), message),
@@ -13,4 +14,12 @@ module.exports = {
   success: message => console.log(chalk.green('✓ success'), message),
   system: message => console.log(chalk.blue(message)),
   warning: message => console.log(chalk.yellow('warn'), message),
-};
+}
+
+// Mute logging if environment var set
+if (process.env.LOGGER_DISABLED) Object.keys(types).forEach(key => types[key] = () => ({}));
+
+
+// EXPORT
+// ----------------------------------
+module.exports = types;
