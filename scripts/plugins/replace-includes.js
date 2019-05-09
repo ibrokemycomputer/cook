@@ -13,7 +13,7 @@ const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // Config
-const {distPath,srcPath} = require(`${cwd}/config/main.js`);
+const {convertPageToDirectory,distPath,srcPath} = require(`${cwd}/config/main.js`);
 
 
 // DEFINE
@@ -25,12 +25,12 @@ const {distPath,srcPath} = require(`${cwd}/config/main.js`);
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
-async function replaceIncludes({file, allowType, disallowType}) {
+function replaceIncludes({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
   
-  let errorLabel, errorPath, hasInclude, includePath;
+  let errorLabel, errorPath, formattedIncludePath, hasInclude, includePath;
   let dom = utils.jsdom.dom({src: file.src});
   // Allow `[include]` or `[data-include]` by default
   const includeSelector = getIncludeSelector(utils.attr.include);
@@ -41,27 +41,33 @@ async function replaceIncludes({file, allowType, disallowType}) {
 
   // Loop through each found include call
   includeItems.forEach((el,i) => {
-
     // If attribute found and it has a path
     hasInclude = hasAttribute(el, utils.attr.include);
     if (hasInclude && hasInclude.path && hasInclude.path.length) {
       try {
-        includePath = path.resolve(`${distPath}/${hasInclude.path}`);
-        // If you are pointing to an include w/o the `.html` extension
-        // We'll add it since the directory-replacement only occurs in /dist (See `createDirFromFile()` in build.js)
-        // Example: `<div include="/includes/header"></div>`
-        //   In /dist, the build process creates `/dist/includes/header/index.html`
-        //   But, in /src, we only have `/src/includes/header.html`, hence this check
-        const hasExtension = utils.hasExtension(includePath);
-        includePath = hasExtension ? includePath : `${includePath}.html`;
+        // Get full system path to the include file
+        includePath = formattedIncludePath = path.resolve(`${distPath}/${hasInclude.path}`);
+        // Convert path to make file location
+        const hasExtension = !!includePath.match(/.html/g);
+        // Case: User added `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
+        // --> Do nothing
+        // Case: User omitted `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
+        // --> convert `/footer` to `/footer.html`)
+        if (!convertPageToDirectory && !hasExtension) formattedIncludePath = `${includePath}.html`;
+        // Case: User added `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
+        // --> convert `/footer.html` to `/footer/index.html`)
+        if (convertPageToDirectory && hasExtension) formattedIncludePath = includePath.replace('.html', '/index.html');
+        // Case: User omitted `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
+        // --> convert `/footer` to `/footer/index.html`)
+        if (convertPageToDirectory && !hasExtension) formattedIncludePath = `${includePath}/index.html`;
         // Get contents of target include file
-        const content = fs.readFileSync(includePath, 'utf-8');
+        const content = fs.readFileSync(formattedIncludePath, 'utf-8');
         // Add included content in DOM before placeholder element
         el.insertAdjacentHTML('beforebegin', content);
-        // Remove placeholder element from DOM
+        // // Remove placeholder element from DOM
         el.remove();
         // Show terminal message
-        Logger.success(`/${file.path} - Replaced [${hasInclude.type}]: ${ chalk.green(hasInclude.path) }`);
+        Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(formattedIncludePath.split(distPath)[1]) }`);
       }
       catch (error) {
         errorLabel = `Invalid include path in '${file.path}`;
@@ -75,11 +81,10 @@ async function replaceIncludes({file, allowType, disallowType}) {
   file.src = utils.setSrc({dom});
   
   // Query again for includes. If sub-includes found, run again
-  dom = utils.jsdom.dom({src: file.src});
-  const newIncludeSelector = getIncludeSelector(utils.attr.include);
-  const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
-  // const newSubIncludes = dom.window.document.querySelectorAll(`[${utils.attr.include}]`);
-  if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
+  // dom = utils.jsdom.dom({src: file.src});
+  // const newIncludeSelector = getIncludeSelector(utils.attr.include);
+  // const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
+  // if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
 }
 
 // HELPER METHODS

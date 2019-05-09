@@ -31,10 +31,11 @@ module.exports = {
  * @description - Store information for use in build plugins based on the current file
  * @param {Object} Opts - Argument object
  * @property {String} fileName - The filename of the targeted file 
+ * @property {String} [excludeSrc] - Complie file meta without opening the file if you don't need the source
  * @returns {Object}
  * @private
  */
-async function getSrcConfig({fileName}) {
+function getSrcConfig({fileName, excludeSrc = false }) {
   // Init obj
   let file = {};
   
@@ -43,18 +44,17 @@ async function getSrcConfig({fileName}) {
   file.ext = ext;
   file.name = name;
   file.path = fileName;
+
+  // Early Exit: Return the file meta details but skip the source
+  if (excludeSrc) return file;
   
   // Get file source
   file.src = fs.readFileSync(fileName, 'utf-8');
   // Sanitize comments that have non-closing html elements in them. JSDOM will try to close it in the DOM
   // but since there is no starting tag (it's in the comment) it will break the dom
   file.src = removeCommentTags(file.src);
-  
-  // Get JSDOM parts
-  // const document = utils.jsdom.dom({fileSource}).window.document;
 
-  // Return config object
-  // return { document, fileSource, fileExt: ext };
+  // Return file info
   return file;
 }
 
@@ -63,21 +63,37 @@ async function getSrcConfig({fileName}) {
  * @param {Object} cb - The callback function once the files have been grouped
  * @private
  */
-async function getSrcFiles(cb) {
-  // Show terminal message: Start
-  Logger.header('\nReplace Tasks');
+function getSrcFiles(cb) {
+  // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
 
-  // Disallowed page types
-  // /dist/assets/scripts/vendor - Skip 3rd-party vendor files
-  const defaultExcludedPaths = [new RegExp(`${distPath}\/assets\/scripts\/vendor`)];
-  const userExcludedPaths = validatePaths(excludePaths);
-  const excludedPaths = [...defaultExcludedPaths, ...userExcludedPaths];
-  // Allowed page extensions
-  const allowedExt = ['css','html','js'];
-  // Get files in `/dist`
-  let files = utils.getPaths(distPath, distPath, excludedPaths);
-  // Get only the allowed files by extension (.css, .html)
-  files = files.filter(fileName => utils.isExtension(fileName, allowedExt));
+  // Define files var
+  let files;
+
+  // FILE CHANGE
+  // If only a single page was updated, just run build process on it
+  // Note: If the page was an include, we need to rebuild all pages. 
+  // Other pages may have had the include, but has since been replaced w/ static content
+  const isValidPageChange = utils.validatePageChange();
+  if (isValidPageChange) {
+    const getDistVersionOfChangedPage = process.env.DEV_CHANGED_PAGE.replace(srcPath, distPath);
+    files = [getDistVersionOfChangedPage];
+  }
+  // FULL BUILD
+  // Otherwise, find all allowed files, loop through them, and run the build plugins on them
+  else {
+    // Disallowed page types
+    // /dist/assets/scripts/vendor - Skip 3rd-party vendor files
+    const defaultExcludedPaths = [new RegExp(`${distPath}\/assets\/scripts\/vendor`)];
+    const userExcludedPaths = validatePaths(excludePaths);
+    const excludedPaths = [...defaultExcludedPaths, ...userExcludedPaths];
+    // Allowed page extensions
+    const allowedExt = ['css','html','js'];
+    // Get files in `/dist`
+    files = utils.getPaths(distPath, distPath, excludedPaths);
+    // Get only the allowed files by extension (.css, .html)
+    files = files.filter(fileName => utils.isExtension(fileName, allowedExt));
+  }
+
   // Run tasks on matched files
   if (cb) cb(files);
 }
@@ -87,7 +103,7 @@ async function getSrcFiles(cb) {
  * @param {Object} cb - The callback function once the images have been grouped
  * @private
  */
-async function getSrcImages(cb) {
+function getSrcImages(cb) {
   // Show terminal message: Start
   Logger.header('\nImage Tasks');
   

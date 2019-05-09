@@ -27,7 +27,7 @@ replaceExternalLinkProtocol = replaceExternalLinkProtocol || {};
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
-async function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
+function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;

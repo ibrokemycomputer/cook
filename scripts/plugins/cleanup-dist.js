@@ -17,7 +17,10 @@ const {distPath} = require(`${cwd}/config/main.js`);
 // -----------------------------
 async function cleanupDist() {
   // Remove `/dist/includes` (fails silently if not there as that is the intended result)
-  rimraf(`${distPath}/includes`, first);
+  // NOTE!!!!
+  // Don't remove `/dist/includes` because a changed file might have includes in them
+  // that need to be replaced
+  // rimraf(`${distPath}/includes`, first);
 }
 
 // HELPER METHODS

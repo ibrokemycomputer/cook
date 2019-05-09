@@ -16,7 +16,11 @@ const {distPath} = require(`${cwd}/config/main.js`);
 
 // DEFINE
 // -----------------------------
-async function createDist() {
+function createDist() {
+  // Early Exit: Do not create `/dist` if only a single page was updated
+  // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
+  if (process.env.DEV_CHANGED_PAGE) return;
+
   // Show terminal message: Start
   Logger.header(`\nCreate /${distPath}`);
 

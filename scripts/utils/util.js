@@ -50,6 +50,7 @@ module.exports = {
   replaceExternalLinkProtocolDefaults,
   setSrc,
   testSrc,
+  validatePageChange,
 };
 
 
@@ -235,4 +236,17 @@ function setSrc({dom}) {
 function testSrc({file}) {
   const test = ['dist/assets/scripts/plugin/pf-webp/pf-webp.js','dist/index.html','dist/includes/global-head.html','dist/assets/css/main.css'];
   if (test.indexOf(file.path) > -1) console.log(`\n----------------------\n\n${chalk.blue(file.path)}\n\n${file.src}\n`);
+}
+
+/**
+ * @description Return whether dev live reload change event was an individual page change,
+ * AND if the file wasn't an include
+ */
+function validatePageChange() {
+  // Page was changed when using localhost BrowserSync live reloading (`npm run dev`)
+  const changedDevPage = process.env.DEV_CHANGED_PAGE;
+  // Was the changed page an include file?
+  const isInclude = changedDevPage && !!changedDevPage.match(/\/include/);
+  // Return true (valid) if it was a page change AND it wasn't an include file
+  return changedDevPage && !isInclude;
 }

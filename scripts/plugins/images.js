@@ -45,7 +45,7 @@ const svgo = new SVGO(svgoOpts);
  * @param {Array} images Images queried with jsdom
  * @param {String} file File object
  */
-async function editMarkup(images, file) {
+function editMarkup(images, file) {
   images.forEach(el => {
     if (el.getAttribute('data-optimize') !== 'disabled') { 
       const originalFileSource = el.getAttribute('src');
@@ -79,7 +79,7 @@ async function editMarkup(images, file) {
  * @param {Object} file File object
  * @param {String} [type] Type of file (image or html)
  */
-async function optimizeSVG(file, type) {
+function optimizeSVG(file, type) {
   // Early Exit: Only allow `html` extensions
   if (file.ext !== 'html') return;
   // When SVG is an external call to a .svg file
@@ -95,7 +95,7 @@ async function optimizeSVG(file, type) {
     // Add `[xmlns:xlink="http://www.w3.org/1999/xlink"]` to each <svg> instance
     // before trying to run SVGO, or it will throw a namespace error in terminal
     svgs.forEach(s => s.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink'));
-    await compressInlineSVGs(svgs);
+    compressInlineSVGs(svgs);
     Logger.success(`/${distPath}/${file.name}.${file.ext} - Inline SVGs Optimized.`);
   }
 }
@@ -107,7 +107,7 @@ async function optimizeSVG(file, type) {
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
-async function replaceImgTags({file, allowType, disallowType}) {
+function replaceImgTags({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
@@ -121,7 +121,7 @@ async function replaceImgTags({file, allowType, disallowType}) {
   // Store all <img> tags
   const images = dom.window.document.querySelectorAll(`img`);
 
-  await editMarkup(images, file);
+  editMarkup(images, file);
   
   file.src = utils.setSrc({dom});
   Logger.success(`Edited image markup in ${file.name}`);
@@ -151,7 +151,7 @@ function validSource(src) {
  * @param {Array} svgs - Svgs queried with jsdom
  * @internal
  */
-async function compressInlineSVGs(svgs) {
+function compressInlineSVGs(svgs) {
   svgs.forEach(el => {
     if (el.getAttribute('data-optimize') !== 'disabled') {
       svgo.optimize(el.outerHTML).then(result => {
@@ -168,10 +168,10 @@ async function compressInlineSVGs(svgs) {
  * @param TODO
  * @internal
  */
-async function compressAndNextGen(image) {
+function compressAndNextGen(image) {
   if (validSource(image)) {
-    await compress(image, 'other');
-    await convertToWebp(image);
+    compress(image, 'other');
+    convertToWebp(image);
   }
 }
 
@@ -181,7 +181,7 @@ async function compressAndNextGen(image) {
  * @param TODO
  * @internal
  */
-async function compress(image, type) {
+function compress(image, type) {
   const output = image.replace(/\/[^/]+$/, "");  
 	// raster image? compress appropriately
 	if (type !== 'svg') {
@@ -206,7 +206,7 @@ async function compress(image, type) {
  * @param TODO
  * @internal
  */
-async function convertToWebp(image) {
+function convertToWebp(image) {
 	const output = image.replace(/\/[^/]+$/, "");
 	imagemin([image], output, {
 		use: [

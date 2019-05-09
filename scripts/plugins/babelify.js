@@ -70,18 +70,16 @@ function addES5Markup(file) {
  * @param {Array} [Obj.allowType] Allowed files types
  * @param {Array} [Obj.disallowType] Disallowed files types
  */
-async function babelify({file, allowType, disallowType}) {
+function babelify({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
   // Early Exit: Don't minify in development
   if (process.env.NODE_ENV === 'development') return;
-
-  if (file.ext === 'js') { // Runs on .js files
-    createEs5File(file);
-  } else { // Runs on .html files
-    addES5Markup(file);
-  }
+  // Run on .js files
+  if (file.ext === 'js') createEs5File(file);
+  // Run on .html files
+  else addES5Markup(file);
 }
 
 

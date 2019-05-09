@@ -5,7 +5,7 @@ const browserSync = require('browser-sync').create('Dev Server');
 const chalk = require('chalk');
 const packageJSON = require('../package.json');
 const Logger = require(`./utils/logger.js`);
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 
 // Config
 const {distPath,srcPath,startPath,watch} = require(`${cwd}/config/main.js`);
@@ -48,13 +48,17 @@ browserSync.emitter.on('init', () => {
 // view includes.
 watchFiles.forEach(path => {
   // Watch `/src` files for changes
-  browserSync.watch(`${srcPath}${path}`).on('change', async (file) => {
-    // Run the build process to copy changes to /dist
-    await exec('NODE_ENV=development npm run build', () => {
-      // Wait for build process to be done, then...
-      // Replace `src/` with `/dist` in the path to reload the `/dist` version
-      const fileDist = file.replace(`${srcPath}/`, `${distPath}/`);
-      browserSync.reload(fileDist);
-    });
+  browserSync.watch(`${srcPath}${path}`).on('change', file => {
+    // Store the changed file as an environment variable
+    // Then when we run the build process below,
+    // we'll use this now-defined variable to dictate
+    // whether the whole build process is run, or just against
+    // this changed file.
+    process.env.DEV_CHANGED_PAGE = file;
+    // Run the build process
+    execSync('NODE_ENV=development npm run build', {stdio: 'inherit'});
+    // Reload changed page
+    const fileDist = file.replace(`${srcPath}/`, `${distPath}/`);
+    browserSync.reload(fileDist);
   });
 });

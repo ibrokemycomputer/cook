@@ -53,84 +53,93 @@ async function build() {
   console.log(`${ chalk.blue('\n[Build]') } ${ chalk.blue.bold('`npm run build`') }`);
 
   // PLUGIN: Create `/dist` if not already made
-  await createDist();
+  createDist();
 
   // PLUGIN: Copy `/src` to `/dist`
-  await copySrc();
+  copySrc();
 
   // CUSTOM PLUGINS: Run custom user plugins before file loop
-  await customPlugins({data, plugins: plugins.before, log: true });
+  customPlugins({data, plugins: plugins.before, log: 'Before' });
 
   // PERFORMANCE: Generate X number of pages to test performance
-  if (pagePerformanceTest > 0) await generatePages(pagePerformanceTest); 
+  if (pagePerformanceTest > 0) generatePages(pagePerformanceTest); 
 
   // THE IMAGES LOOP
-  await getSrcImages(async images => {
+  getSrcImages(images => {
     images.forEach(image => {
       // PLUGIN: Optimize .svg files with SVGO
       if (optimizeSVGs !== false) optimizeSVG(image, 'image');
       // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
       if (optimizeImages !== false) compressAndNextGen(image);
-    })
+    });
   });
 
   // THE FILES LOOP
-  await getSrcFiles(async files => {
+  getSrcFiles(files => {
+
+    // PLUGIN: Convert allowed /dist .html file to directory
+    if (convertPageToDirectory) createDirFromFile({files, allowType: ['.html']});
 
     // Run tasks on matched files
-    await files.forEach(async (fileName) => {
+    files.forEach(fileName => {
+
+      // Show Terminal Message: Start
+      Logger.header(`\n${fileName}`);
+      const timeStart = new Date().getTime();
+
       
       // Open file and store file info for use in plugins
       // We'll pass around the source string between the plugins
       // Then write back the updated/modified source to the file at the end
-      let file = await getSrcConfig({fileName});
+      let file = getSrcConfig({fileName});
 
       // CUSTOM PLUGINS: Run custom user plugins during file loop
-      await customPlugins({file, data, plugins: plugins.default});
+      customPlugins({file, data, plugins: plugins.default});
 
       // PLUGIN: Render all ES6 template strings 
-      await replaceTemplateStrings({file, data, allowType: ['.html']});
+      replaceTemplateStrings({file, data, allowType: ['.html']});
 
       // PLUGIN: Add missing `http://` to user-added external link `[href]` values (`[href="www.xxxx.com"]`)
-      if (replaceExternalLinkProtocol.enabled) await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
-
+      if (replaceExternalLinkProtocol.enabled) replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
+      
       // PLUGIN: Replace `[data-include]` in files
-      await replaceIncludes({file, allowType: ['.html']});
+      replaceIncludes({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
-      await replaceInline({file, allowType: ['.html']});
+      replaceInline({file, allowType: ['.html']});
 
       // PLUGIN: Replace <img> tags with <picture> elements
-      if (optimizeImages !== false) await replaceImgTags({file, allowType: ['.html']});
+      if (optimizeImages !== false) replaceImgTags({file, allowType: ['.html']});
 
       // PLUGIN: Optimize inline <svg>'s with SVGO
-      if (optimizeSVGs !== false) await optimizeSVG(file, 'inline');
+      if (optimizeSVGs !== false) optimizeSVG(file, 'inline');
 
       // PLUGIN: Babelify standalone JS files
-      await babelify({file, allowType: ['.js','.html']});
+      babelify({file, allowType: ['.js','.html']});
 
       // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
       // because `/src` doesn't exist in `/dist`
-      await replaceSrcPathForDev({file, allowType: ['.css','.html']});
+      replaceSrcPathForDev({file, allowType: ['.css','.html']});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
-      await setActiveLinks({file, allowType: ['.html']});
+      setActiveLinks({file, allowType: ['.html']});
 
       // PLUGIN: Minify Source
-      await minifySrc({file});
-
-      // PLUGIN: Create directory from .html file
-      if (convertPageToDirectory) createDirFromFile({file, allowType: ['.html'], excludePath: ['dist/index']});
+      minifySrc({file});
       
       // Write new, modified source back to the file
       fs.writeFileSync(file.path, file.src);
 
+      
+      // Show Terminal Message: End
+      const timeEnd = new Date().getTime();
+      Logger.done(`${(timeEnd-timeStart)/1000}s`)
     });
   });
 
   // CUSTOM PLUGINS: Run custom user plugins after file loop
-  await customPlugins({data, plugins: plugins.after, log: true });
+  customPlugins({data, plugins: plugins.after, log: 'After' });
 
   // PLUGIN: Remove /dist/includes after build
   cleanupDist();

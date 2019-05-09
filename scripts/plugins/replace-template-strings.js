@@ -21,9 +21,9 @@ const Logger = require(`../utils/logger.js`);
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
-async function replaceTemplateStrings({file, data, allowType, disallowType}) {
+function replaceTemplateStrings({file, data, allowType, disallowType}) {
   // Early Exit: File type not allowed
-  const allowed = await utils.isAllowedType({file,allowType,disallowType});
+  const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
 
   // Get data keys and values
@@ -37,7 +37,6 @@ async function replaceTemplateStrings({file, data, allowType, disallowType}) {
   try {
     const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
     const compiled = compile(file.src, dataKeys)(...dataValues);
-
     // Store the new file source
     file.src = compiled;
 
