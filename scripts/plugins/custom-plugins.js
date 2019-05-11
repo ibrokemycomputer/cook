@@ -6,7 +6,7 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-// const chalk = require('chalk');
+const chalk = require('chalk');
 // const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
@@ -21,6 +21,7 @@ const {pluginPath} = require(`${cwd}/config/main.js`);
  * @param {Object} obj.file - The current file info (name, extension, src, etc.)
  * @param {Object} obj.plugins - The set of custom-user plugins to run for this instance.
  * These are pulled from the `main.js` config file, and are run in 3 build positions: `before`, `after` and during the files loop (`default`).
+ * Note: You can export a plugin either as a function or ES6 class
  */
 function customPlugins({data = {}, file, log, plugins}) {
   // Early Exit: No Plugins
@@ -34,7 +35,17 @@ function customPlugins({data = {}, file, log, plugins}) {
     const plugin = require(`${cwd}/${pluginsPath}/${fn}.js`);
     let plg = String(fn);
     // Execute plugin method if it exists
-    if (plugin[plg]) plugin[plg]({data, file}); 
+    // Is function?
+    if (plugin[plg]) plugin[plg]({file, data});
+    // Is class?
+    else {
+      try {
+        new plugin[Object.keys(plugin)[0]]({file, data})
+      }
+      catch (e) {
+        console.log(chalk.red(`${plg} not executed as it is not a valid Function or Class`));
+      }
+    }
   });
 }
 
