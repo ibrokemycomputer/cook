@@ -120,7 +120,7 @@ function getFileParts(path) {
   const fileName = fileSplit[fileSplit.length - 1]
   // If last split item is `index.html`, store its parent directory (if option to convert pages to directories is enabled)
   // If not, there will be a lot of pages with `file.name` as
-  const fileNameIfIndex = convertPageToDirectory && fileName[0] === 'index' ? fileSplit[fileSplit.length - 2] : undefined;
+  const fileNameIfIndex = convertPageToDirectory && fileName === 'index.html' ? fileSplit[fileSplit.length - 2] : undefined;
   const fileNameSplit = fileName.split('.');
   return { name: fileNameSplit[0], nameIfIndex: fileNameIfIndex, ext: fileNameSplit[1] };
 }
