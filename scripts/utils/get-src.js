@@ -40,9 +40,10 @@ function getSrcConfig({fileName, excludeSrc = false }) {
   let file = {};
   
   // Store filename parts
-  let {ext,name} = utils.getFileParts(fileName);
+  let {ext,name,nameIfIndex} = utils.getFileParts(fileName);
   file.ext = ext;
   file.name = name;
+  file.nameIfIndex = nameIfIndex;
   file.path = fileName;
 
   // Early Exit: Return the file meta details but skip the source
