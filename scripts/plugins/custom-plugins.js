@@ -43,9 +43,23 @@ function customPlugins({data = {}, file, log, plugins}) {
         new plugin[Object.keys(plugin)[0]]({file, data})
       }
       catch (e) {
-        console.log(chalk.red(`${plg} not executed as it is not a valid Function or Class`));
+        const errorStackFileLine = e.stack.split('\n')[1];
+        const splitColon = errorStackFileLine.split(':');
+        const lineNumber = splitColon[splitColon.length - 2];
+        const fileName = splitColon[splitColon.length - 3];
+        // Display custom error message
+        console.log(chalk.bold.red(`\n${plg}`));
+        console.log(chalk.red(e.message));
+        if (fileName) {
+          const fileSplit = fileName.split(' (');
+          const filePart = fileSplit[0];
+          const filePath = fileSplit[1];
+          console.log(chalk.grey(`${filePart.trim()} (line ${lineNumber})`));
+          console.log(chalk.grey(filePath));
+        }
       }
     }
+
   });
 }
 
