@@ -33,10 +33,11 @@ function replaceInline({file, allowType, disallowType}) {
 
   // Make source traversable with JSDOM
   let dom = utils.jsdom.dom({src: file.src});
-
   // Store all <link inline> and <scripts inline>
-  const links = dom.window.document.querySelectorAll(`link[${utils.attr.inline}]`);
-  const scripts = dom.window.document.querySelectorAll(`script[${utils.attr.inline}]`);
+  const inlineLinkSelector = utils.getSelector(utils.attr.inline, 'link');
+  const inlineScriptSelector = utils.getSelector(utils.attr.inline, 'script');
+  const links = dom.window.document.querySelectorAll(inlineLinkSelector);
+  const scripts = dom.window.document.querySelectorAll(inlineScriptSelector);
 
   // REPLACE INLINE CSS
   replaceLink({links, file});

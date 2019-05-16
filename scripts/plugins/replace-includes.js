@@ -33,7 +33,7 @@ function replaceIncludes({file, allowType, disallowType}) {
   let errorLabel, errorPath, formattedIncludePath, hasInclude, includePath;
   let dom = utils.jsdom.dom({src: file.src});
   // Allow `[include]` or `[data-include]` by default
-  const includeSelector = getIncludeSelector(utils.attr.include);
+  const includeSelector = utils.getSelector(utils.attr.include);
   const includeItems = dom.window.document.querySelectorAll(includeSelector);
 
   // Early Exit: No includes
@@ -81,21 +81,14 @@ function replaceIncludes({file, allowType, disallowType}) {
   file.src = utils.setSrc({dom});
   
   // Query again for includes. If sub-includes found, run again
-  // dom = utils.jsdom.dom({src: file.src});
-  // const newIncludeSelector = getIncludeSelector(utils.attr.include);
-  // const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
-  // if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
+  dom = utils.jsdom.dom({src: file.src});
+  const newIncludeSelector = utils.getSelector(utils.attr.include);
+  const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
+  if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
 }
 
 // HELPER METHODS
 // -----------------------------
-
-function getIncludeSelector(attrs) {
-  let selector = '';
-  if (typeof attrs === 'string') selector = `[${attrs}]`;
-  else attrs.forEach((a,i) => selector += i === 0 ? `[${a}]` : `,[${a}]`);
-  return selector;
-}
 
 function hasAttribute(el, attrs) {
   let tmpArr = [];

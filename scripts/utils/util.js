@@ -27,7 +27,7 @@ const jsdom = {
 const attr = {
   active: activeAttr || 'data-active',
   include: includeAttr || ['include', 'data-include'],
-  inline: inlineAttr || 'data-inline',
+  inline: inlineAttr || ['inline', 'data-inline'],
 }
 
 // The default path types to target in `replace-external-link-protocol.js`
@@ -43,6 +43,7 @@ module.exports = {
   getFileName,
   getFileParts,
   getPaths,
+  getSelector,
   hasExtension,
   isAllowedType,
   isExtension,
@@ -168,6 +169,21 @@ function getPaths(originalPath, path, ignorePattern, paths = []) {
   } catch (error) {
     throw error;
   }
+}
+
+/**
+ * @description Return the correct selector for query select. Can either be a string, 
+ * or an array of strings for multi-selector.
+ * @param {String|Array} attrs - The multiple selectors to query select off of
+ * @param {String} [el] - Optional element to add in front of attribute selector (Ex: `link[attr]` instead of `[attr]`)
+ * @returns {String}
+ * @private
+ */
+function getSelector(attrs, el = '') {
+  let selector = '';
+  if (typeof attrs === 'string') selector = `${el}[${attrs}]`;
+  else attrs.forEach((a,i) => selector += i === 0 ? `${el}[${a}]` : `,${el}[${a}]`);
+  return selector;
 }
 
 /**

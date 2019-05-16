@@ -68,9 +68,9 @@ async function build() {
   getSrcImages(images => {
     images.forEach(image => {
       // PLUGIN: Optimize .svg files with SVGO
-      if (optimizeSVGs !== false) optimizeSVG(image, 'image');
+      if (optimizeSVGs) optimizeSVG(image, 'image');
       // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
-      if (optimizeImages !== false) compressAndNextGen(image);
+      if (optimizeImages) compressAndNextGen(image);
     });
   });
 
@@ -109,10 +109,10 @@ async function build() {
       replaceInline({file, allowType: ['.html']});
 
       // PLUGIN: Replace <img> tags with <picture> elements
-      if (optimizeImages !== false) replaceImgTags({file, allowType: ['.html']});
+      if (optimizeImages) replaceImgTags({file, allowType: ['.html']});
 
       // PLUGIN: Optimize inline <svg>'s with SVGO
-      if (optimizeSVGs !== false) optimizeSVG(file, 'inline');
+      if (optimizeSVGs) optimizeSVG(file, 'inline');
 
       // PLUGIN: Babelify standalone JS files
       babelify({file, allowType: ['.js','.html']});
