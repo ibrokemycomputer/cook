@@ -10,15 +10,20 @@ const { execSync } = require('child_process');
 // Config
 const {distPath,srcPath,startPath,watch} = require(`${cwd}/config/main.js`);
 
-// Use paths from config or defaults
-const watchFiles = watch && watch.length 
-  ? watch 
-  : [
-    '/assets/css/*.css',
-    '/**/*.html',
-    '/assets/plugin/**/*.css',
-    '/assets/plugin/**/*.js',
-  ];
+// FILES TO WATCH
+// The default file paths to watch
+let watchFiles = [
+  '/assets/css/*.css',
+  '/**/*.html',
+  '/assets/plugin/**/*.css',
+  '/assets/plugin/**/*.js',
+];
+// Did user add custom paths to `watch` in `/config/main.js`?
+const userAddedWatch = watch && watch.length;
+// If user set `watchReplace` option to TRUE, replace the defaults
+if (watchReplace && userAddedWatch) watchFiles = watch;
+// Otherwise, add their paths in addition to the defaults
+else if (userAddedWatch) watchFiles = [...watchFiles, ...watch];
 
 // INIT BROWSER-SYNC SERVER
 // -----------------------------
