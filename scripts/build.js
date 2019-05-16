@@ -115,7 +115,7 @@ async function build() {
       if (optimizeSVGs) optimizeSVG(file, 'inline');
 
       // PLUGIN: Babelify standalone JS files
-      babelify({file, allowType: ['.js','.html']});
+      // babelify({file, allowType: ['.js','.html']});
 
       // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
