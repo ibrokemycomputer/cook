@@ -8,7 +8,7 @@ const Logger = require(`./utils/logger.js`);
 const { execSync } = require('child_process');
 
 // Config
-const {distPath,srcPath,startPath,watch} = require(`${cwd}/config/main.js`);
+const {distPath,srcPath,startPath,watch,watchReplace} = require(`${cwd}/config/main.js`);
 
 // FILES TO WATCH
 // The default file paths to watch
