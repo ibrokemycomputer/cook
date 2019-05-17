@@ -62,17 +62,17 @@ async function build() {
   customPlugins({data, plugins: plugins.before, log: 'Before' });
 
   // PERFORMANCE: Generate X number of pages to test performance
-  if (pagePerformanceTest > 0) generatePages(pagePerformanceTest); 
+  // if (pagePerformanceTest > 0) generatePages(pagePerformanceTest); 
 
   // THE IMAGES LOOP
-  getSrcImages(images => {
-    images.forEach(image => {
-      // PLUGIN: Optimize .svg files with SVGO
-      if (optimizeSVGs) optimizeSVG(image, 'image');
-      // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
-      if (optimizeImages) compressAndNextGen(image);
-    });
-  });
+  // getSrcImages(images => {
+  //   images.forEach(image => {
+  //     // PLUGIN: Optimize .svg files with SVGO
+  //     if (optimizeSVGs) optimizeSVG(image, 'image');
+  //     // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
+  //     if (optimizeImages) compressAndNextGen(image);
+  //   });
+  // });
 
   // THE FILES LOOP
   getSrcFiles(files => {
@@ -109,10 +109,10 @@ async function build() {
       replaceInline({file, allowType: ['.html']});
 
       // PLUGIN: Replace <img> tags with <picture> elements
-      if (optimizeImages) replaceImgTags({file, allowType: ['.html']});
+      // if (optimizeImages) replaceImgTags({file, allowType: ['.html']});
 
       // PLUGIN: Optimize inline <svg>'s with SVGO
-      if (optimizeSVGs) optimizeSVG(file, 'inline');
+      // if (optimizeSVGs) optimizeSVG(file, 'inline');
 
       // PLUGIN: Babelify standalone JS files
       // babelify({file, allowType: ['.js','.html']});

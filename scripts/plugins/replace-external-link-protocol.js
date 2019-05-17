@@ -57,9 +57,11 @@ function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
  * @private
  */
 function replaceMissingProtocol({file, link}) {
-  const currPath = utils.getFileName(file.path, distPath);
+  // Early Exit: <a> does not have `[href]` or href value is empty string
+  // Example: Someone adds an old-school anchor jump point: `<a id="jump-point"></a>`
+  if (!link.href || link.href === '') return;
+  // Get href path
   const linkPath = utils.getFileName(link.href, distPath);
-
   // Only replace for `www` and `cdn` instances, unless user defined their own
   const domainTargets = replaceExternalLinkProtocol.match || utils.replaceExternalLinkProtocolDefaults;
   if (domainTargets.indexOf(linkPath) === -1) return;
