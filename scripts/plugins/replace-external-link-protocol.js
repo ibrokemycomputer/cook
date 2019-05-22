@@ -35,11 +35,17 @@ function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
   // Make source traversable with JSDOM
   let dom = utils.jsdom.dom({src: file.src});
 
-  // Find <a> tags
+  // Find <a>, <link>, and <script> tags
+  const $link = dom.window.document.querySelectorAll('link');
   const $links = dom.window.document.querySelectorAll('a');
-  // Add `http://` to qualifying links
-  $links.forEach((link,i) => replaceMissingProtocol({file, link}));
+  const $script = dom.window.document.querySelectorAll('script');
 
+  // Add `http://` to qualifying a tags
+  // Replace leading `//` to qualifying tags
+  if ($link) $link.forEach(el => replaceMissingProtocol({file, el}));
+  if ($links) $links.forEach(el => replaceMissingProtocol({file, el}));
+  if ($script) $script.forEach(el => replaceMissingProtocol({file, el}));
+  
   // Store updated file source
   file.src = utils.setSrc({dom});
 }
@@ -53,28 +59,42 @@ function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
  * @example Does Not Replace: `<a href="https://www.xxxx.com">`
  * @param {Object} opts - The arguments object
  * @property {Object} file - The current file's props (ext,name,path,name)
- * @property {Object} link - The current <a> tag being evaluated
+ * @property {Object} el - The current <a>, <link>, or <script> tag being evaluated
  * @private
  */
-function replaceMissingProtocol({file, link}) {
-  // Early Exit: <a> does not have `[href]` or href value is empty string
+function replaceMissingProtocol({file, el}) {
+  // Get source type (`href` or `src`)
+  let srcType = el.href || el.src;
+  // Early Exit: Tag does not have `[href]` or `[src]` or attribute value is empty string
   // Example: Someone adds an old-school anchor jump point: `<a id="jump-point"></a>`
-  if (!link.href || link.href === '') return;
+  if (!srcType || srcType === '') return;
   // Get href path
-  const linkPath = utils.getFileName(link.href, distPath);
+  const linkPath = utils.getFileName(srcType, distPath);
   // Only replace for `www` and `cdn` instances, unless user defined their own
   const domainTargets = replaceExternalLinkProtocol.match || utils.replaceExternalLinkProtocolDefaults;
-  if (domainTargets.indexOf(linkPath) === -1) return;
+  const isTargetMatch = domainTargets.indexOf(linkPath) > -1;
+  const pathType = el.href ? 'href' : 'src';
+  if (isTargetMatch) replaceExternal(file, el, pathType);
+}
+
+/**
+ * @description Create new, fixed external path
+ * @property {Object} file - The current file's props (ext,name,path,name)
+ * @property {Object} el - The current <a>, <link>, or <script> tag being evaluated
+ * @property {String} type - Either the element's `[href]` or `[src]` prop to write new value to
+ * @private
+ */
+function replaceExternal(file, el, type) {
   // Split path on /
-  let linkPathSplit = link.href.split('/');
+  let linkPathSplit = el[type].split('/');
   // Filter out ''
   linkPathSplit = linkPathSplit.filter(s => s);
   // Find if 'localhost' is in the path name
   // We'll only replace these, as they represent the links we want to convert
   if (linkPathSplit.indexOf('localhost') === -1) return;
-  link.href = `http://${linkPathSplit[linkPathSplit.length-1]}`;
+  el[type] = `http://${linkPathSplit[linkPathSplit.length-1]}`;
   // Show terminal message
-  Logger.success(`/${file.path} - Added 'http://' to [href="${linkPathSplit[linkPathSplit.length-1]}"]: ${ chalk.green(link.href) }`);
+  Logger.success(`/${file.path} - Added 'http://' to [href="${linkPathSplit[linkPathSplit.length-1]}"]: ${ chalk.green(el[type]) }`);
 }
 
 // EXPORT
