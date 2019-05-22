@@ -142,7 +142,7 @@ async function build() {
   customPlugins({data, plugins: plugins.after, log: 'After' });
 
   // PLUGIN: Remove /dist/includes after build
-  cleanupDist();
+  // cleanupDist();
 
 };
 build();
