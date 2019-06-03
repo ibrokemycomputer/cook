@@ -53,8 +53,9 @@ async function createDirFromFile({files, allowType, disallowType, excludePath}) 
     if (excludePath && excludePath.filter(str => file.path.includes(str)).length) return;
 
     // CREATE NEW DIRECTORY IN /DIST
-    rimraf.sync(filePath);
-    fs.mkdirSync(filePath);
+    // rimraf.sync(filePath);
+    // fs.mkdirSync(filePath);
+    fs.mkdirpSync(filePath);
 
     // MOVE PAGE TO NEW DIRECTORY
     // Move xxxx.html file to new directory xxxx/index.html
