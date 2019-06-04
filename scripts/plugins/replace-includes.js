@@ -81,10 +81,10 @@ function replaceIncludes({file, allowType, disallowType}) {
   file.src = utils.setSrc({dom});
   
   // Query again for includes. If sub-includes found, run again
-  dom = utils.jsdom.dom({src: file.src});
-  const newIncludeSelector = utils.getSelector(utils.attr.include);
-  const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
-  if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
+  // dom = utils.jsdom.dom({src: file.src});
+  // const newIncludeSelector = utils.getSelector(utils.attr.include);
+  // const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
+  // if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
 }
 
 // HELPER METHODS
