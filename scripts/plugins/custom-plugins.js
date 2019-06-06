@@ -32,25 +32,24 @@ function customPlugins({data = {}, file, log, plugins}) {
   const pluginsPath = pluginPath || 'plugins';
   // Execute each user plugin
   plugins.forEach(fn => {
+    const plugin = require(`${cwd}/${pluginsPath}/${fn}.js`);
+    let plg = String(fn);
+    // Execute plugin method if it exists
+    // If a class...
     try {
-      const plugin = require(`${cwd}/${pluginsPath}/${fn}.js`);
-      let plg = String(fn);
-      // Execute plugin method if it exists
-      // If a class...
-      try {
-        new plugin[Object.keys(plugin)[0]]({file, data})
-      }
-      catch (e) {
-        // If a function...
-        if (plugin[plg]) plugin[plg]({file, data});
-
-        // Custom error message
-        utils.customError(e, plg || 'Custom Plugins');
-      }
+      new plugin[Object.keys(plugin)[0]]({file, data})
     }
     catch (e) {
+      // If a function...
+      try {
+        plugin[plg]({file, data});
+      }
+      catch (e) {
+        utils.customError(e, plg || 'Function');
+      }
+
       // Custom error message
-      utils.customError(e, 'Custom Plugins');
+      utils.customError(e, plg || 'Class');
     }
   });
 }
