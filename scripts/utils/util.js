@@ -40,6 +40,7 @@ const replaceExternalLinkProtocolDefaults = ['cdn', 'www'];
 module.exports = {
   attr,
   convertExternalLinks,
+  customError,
   getFileName,
   getFileParts,
   getPaths,
@@ -59,30 +60,6 @@ module.exports = {
 // ----------------------------------
 
 /**
- * @description Get a new JSDOM document/object from the passed in string source
- * @docs https://github.com/jsdom/jsdom
- * @param {Object} opts - The arguments object
- * @property {String} fileSource - The source to make a traversable document from
- * @property {Object} [options] - Optional JSDOM options config object
- * @returns {Object}
- */
-function newJSDOM({src,options}) {
-  const opts = options || { url: jsdom.baseUrl };
-  return new JSDOM(src, opts);
-}
-
-/**
- * @description Get a new JSDOM fragment from the passed in string source
- * @docs https://github.com/jsdom/jsdom
- * @param {Object} opts - The arguments object
- * @property {String} fileSource - The source to make a traversable document from
- * @returns {Object}
- */
-function newFrag({src}) {
-  return JSDOM.fragment(src);
-}
-
-/**
  * @description Find all href="www.xxxx.com" links and add http:// protocol. 
  * By using the <base> tag, www links w/o a protocol are treated as internal (relative) links and will 404
  * @param {*} source 
@@ -91,6 +68,29 @@ function newFrag({src}) {
  */ 
 function convertExternalLinks(source) {
   return source.replace(/href="www/gi, 'href="http://www');
+}
+
+/**
+ * @description Custom terminal error stack-trace message
+ * @param {Object} e - The error event
+ * @param {String} label - The console section label
+ * @private
+ */ 
+function customError(e, label = 'Error') {
+  const errorStackFileLine = e.stack.split('\n')[1];
+  const splitColon = errorStackFileLine.split(':');
+  const lineNumber = splitColon[splitColon.length - 2];
+  const fileName = splitColon[splitColon.length - 3];
+  // Display custom error message
+  console.log(chalk.bold.red(`\n${label}`));
+  console.log(chalk.red(e.message));
+  if (fileName) {
+    const fileSplit = fileName.split(' (');
+    const filePart = fileSplit[0];
+    const filePath = fileSplit[1];
+    console.log(chalk.grey(`${filePart.trim()} (line ${lineNumber})`));
+    console.log(chalk.grey(filePath));
+  }
 }
 
 /**
@@ -197,6 +197,30 @@ function hasExtension(str) {
   const is3LengthExt = str[str.length - 4] === '.';
   const is4LengthExt = str[str.length - 5] === '.';
   return is2LengthExt || is3LengthExt || is4LengthExt;
+}
+
+/**
+ * @description Get a new JSDOM document/object from the passed in string source
+ * @docs https://github.com/jsdom/jsdom
+ * @param {Object} opts - The arguments object
+ * @property {String} fileSource - The source to make a traversable document from
+ * @property {Object} [options] - Optional JSDOM options config object
+ * @returns {Object}
+ */
+function newJSDOM({src,options}) {
+  const opts = options || { url: jsdom.baseUrl };
+  return new JSDOM(src, opts);
+}
+
+/**
+ * @description Get a new JSDOM fragment from the passed in string source
+ * @docs https://github.com/jsdom/jsdom
+ * @param {Object} opts - The arguments object
+ * @property {String} fileSource - The source to make a traversable document from
+ * @returns {Object}
+ */
+function newFrag({src}) {
+  return JSDOM.fragment(src);
 }
 
 /**

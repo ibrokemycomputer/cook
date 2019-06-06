@@ -32,34 +32,26 @@ function customPlugins({data = {}, file, log, plugins}) {
   const pluginsPath = pluginPath || 'plugins';
   // Execute each user plugin
   plugins.forEach(fn => {
-    const plugin = require(`${cwd}/${pluginsPath}/${fn}.js`);
-    let plg = String(fn);
-    // Execute plugin method if it exists
-    // Is function?
-    if (plugin[plg]) plugin[plg]({file, data});
-    // Is class?
-    else {
+    try {
+      const plugin = require(`${cwd}/${pluginsPath}/${fn}.js`);
+      let plg = String(fn);
+      // Execute plugin method if it exists
+      // If a class...
       try {
         new plugin[Object.keys(plugin)[0]]({file, data})
       }
       catch (e) {
-        const errorStackFileLine = e.stack.split('\n')[1];
-        const splitColon = errorStackFileLine.split(':');
-        const lineNumber = splitColon[splitColon.length - 2];
-        const fileName = splitColon[splitColon.length - 3];
-        // Display custom error message
-        console.log(chalk.bold.red(`\n${plg}`));
-        console.log(chalk.red(e.message));
-        if (fileName) {
-          const fileSplit = fileName.split(' (');
-          const filePart = fileSplit[0];
-          const filePath = fileSplit[1];
-          console.log(chalk.grey(`${filePart.trim()} (line ${lineNumber})`));
-          console.log(chalk.grey(filePath));
-        }
+        // If a function...
+        if (plugin[plg]) plugin[plg]({file, data});
+
+        // Custom error message
+        utils.customError(e, plg || 'Custom Plugins');
       }
     }
-
+    catch (e) {
+      // Custom error message
+      utils.customError(e, 'Custom Plugins');
+    }
   });
 }
 
