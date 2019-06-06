@@ -7,7 +7,7 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-// const utils = require(`../utils/util.js`);
+const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // Config
