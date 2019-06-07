@@ -23,21 +23,31 @@ const {pluginPath} = require(`${cwd}/config/main.js`);
  * These are pulled from the `main.js` config file, and are run in 3 build positions: `before`, `after` and during the files loop (`default`).
  * Note: You can export a plugin either as a function or ES6 class
  */
-function customPlugins({data = {}, file, log, plugins}) {
+async function customPlugins({data = {}, file, log, plugins}) {
   // Early Exit: No Plugins
   if (!plugins) return;
   // Show terminal message: Start
   if (log) Logger.header(`\nCustom User Plugins: ${log}`);
-  // Use user-defined plugin dir path (main.js) or use default location
-  const pluginsPath = pluginPath || 'plugins';
+
   // Execute each user plugin
-  plugins.forEach(fn => {
-    const plugin = require(`${cwd}/${pluginsPath}/${fn}.js`);
-    let plg = String(fn);
-    // Execute plugin method if it exists
+  // NOTE: Using recursion instead of forEach so plugins run synchronously
+  // in case the plugin itself has async processes which the next is dependent on
+  await recursePlugins(-1); 
+  async function recursePlugins(index) {
+    // Increment index so we can grab the next plugin
+    index += 1;
+    // Stop recursion if no more plugins
+    const validPlugin = !!plugins[index];
+    if (!validPlugin) return;
+    // Use user-defined plugin dir path (main.js) or use default location
+    const pluginsPath = pluginPath || 'plugins';
+    // Get plugin file source
+    const plugin = require(`${cwd}/${pluginsPath}/${plugins[index]}.js`);
+    let plg = String(plugins[index]);
     // If a class...
     try {
-      new plugin[Object.keys(plugin)[0]]({file, data})
+      // Run plugin's `init()` method (since it might be async - constructors can't be async)
+      await new plugin[Object.keys(plugin)[0]]({file, data}).init();
     }
     catch (e) {
       // If a function...
@@ -45,13 +55,16 @@ function customPlugins({data = {}, file, log, plugins}) {
         plugin[plg]({file, data});
       }
       catch (e) {
+        // Custom error message
         utils.customError(e, plg || 'Function');
       }
 
       // Custom error message
-      utils.customError(e, plg || 'Class');
+      utils.customError(e, 'Class');
     }
-  });
+    // Recurse and init the next plugin
+    recursePlugins(index++);
+  };
 }
 
 

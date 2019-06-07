@@ -59,7 +59,7 @@ async function build() {
   copySrc();
 
   // CUSTOM PLUGINS: Run custom user plugins before file loop
-  customPlugins({data, plugins: plugins.before, log: 'Before' });
+  await customPlugins({data, plugins: plugins.before, log: 'Before' });
 
   // PERFORMANCE: Generate X number of pages to test performance
   // if (pagePerformanceTest > 0) generatePages(pagePerformanceTest); 
@@ -81,7 +81,7 @@ async function build() {
     if (convertPageToDirectory) createDirFromFile({files, allowType: ['.html']});
 
     // Run tasks on matched files
-    files.forEach(fileName => {
+    files.forEach(async (fileName) => {
 
       // Show Terminal Message: Start
       Logger.header(`\n${fileName}`);
@@ -94,7 +94,7 @@ async function build() {
       let file = getSrcConfig({fileName});
 
       // CUSTOM PLUGINS: Run custom user plugins during file loop
-      customPlugins({file, data, plugins: plugins.default});
+      await customPlugins({file, data, plugins: plugins.default});
 
       // PLUGIN: Render all ES6 template strings 
       replaceTemplateStrings({file, data, allowType: ['.html']});
@@ -139,7 +139,7 @@ async function build() {
   });
 
   // CUSTOM PLUGINS: Run custom user plugins after file loop
-  customPlugins({data, plugins: plugins.after, log: 'After' });
+  await customPlugins({data, plugins: plugins.after, log: 'After' });
 
   // PLUGIN: Remove /dist/includes after build
   // cleanupDist();
