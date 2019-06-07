@@ -74,24 +74,28 @@ async function build() {
   //   });
   // });
 
-  // THE FILES LOOP
-  getSrcFiles(files => {
+  // GET THE ALLOWED FILES 
+  getSrcFiles(async (files) => {
 
     // PLUGIN: Convert allowed /dist .html file to directory
     if (convertPageToDirectory) createDirFromFile({files, allowType: ['.html']});
 
-    // Run tasks on matched files
-    files.forEach(async (fileName) => {
+    // THE FILES LOOP
+    await recurseFiles(0);
+    async function recurseFiles(index) {
+      // Stop recursion if no more files
+      if (!files[index]) return;
+
+      // -----
 
       // Show Terminal Message: Start
-      Logger.header(`\n${fileName}`);
+      Logger.header(`\n${files[index]}`);
       const timeStart = new Date().getTime();
-
       
       // Open file and store file info for use in plugins
       // We'll pass around the source string between the plugins
       // Then write back the updated/modified source to the file at the end
-      let file = getSrcConfig({fileName});
+      let file = getSrcConfig({fileName: files[index]});
 
       // CUSTOM PLUGINS: Run custom user plugins during file loop
       await customPlugins({file, data, plugins: plugins.default});
@@ -135,7 +139,10 @@ async function build() {
       // Show Terminal Message: End
       const timeEnd = new Date().getTime();
       Logger.done(`${(timeEnd-timeStart)/1000}s`)
-    });
+
+      // Recurse and init the next plugin
+      recurseFiles(index+=1);
+    }
   });
 
   // CUSTOM PLUGINS: Run custom user plugins after file loop

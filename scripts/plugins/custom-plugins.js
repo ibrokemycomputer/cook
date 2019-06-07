@@ -32,38 +32,23 @@ async function customPlugins({data = {}, file, log, plugins}) {
   // Execute each user plugin
   // NOTE: Using recursion instead of forEach so plugins run synchronously
   // in case the plugin itself has async processes which the next is dependent on
-  await recursePlugins(-1); 
+  await recursePlugins(0); 
   async function recursePlugins(index) {
-    // Increment index so we can grab the next plugin
-    index += 1;
     // Stop recursion if no more plugins
-    const validPlugin = !!plugins[index];
-    if (!validPlugin) return;
+    if (!plugins[index]) return;
     // Use user-defined plugin dir path (main.js) or use default location
     const pluginsPath = pluginPath || 'plugins';
     // Get plugin file source
     const plugin = require(`${cwd}/${pluginsPath}/${plugins[index]}.js`);
-    let plg = String(plugins[index]);
-    // If a class...
+    // Run plugin's `init()` method (since it might be async - constructors can't be async)
     try {
-      // Run plugin's `init()` method (since it might be async - constructors can't be async)
       await new plugin[Object.keys(plugin)[0]]({file, data}).init();
+      await recursePlugins(index+=1);
     }
     catch (e) {
-      // If a function...
-      try {
-        plugin[plg]({file, data});
-      }
-      catch (e) {
-        // Custom error message
-        utils.customError(e, plg || 'Function');
-      }
-
-      // Custom error message
-      utils.customError(e, 'Class');
+      utils.customError(e);
+      return;
     }
-    // Recurse and init the next plugin
-    recursePlugins(index++);
   };
 }
 
