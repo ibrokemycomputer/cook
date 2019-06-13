@@ -29,9 +29,9 @@ const {getSrcConfig} = require('../utils/get-src');
  * @param {Object} obj.files - The site files' full /dist path
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
- * @param {Array} [obj.excludePath] - Disallowed certain files (Opt-out)
+ * @param {Array} [obj.excludePaths] - Disallowed certain files (Opt-out)
  */
-async function createDirFromFile({files, allowType, disallowType, excludePath}) {
+async function createDirFromFile({files, allowType, disallowType, excludePaths}) {
   // CONVERT EACH ALLOWED .HTML PAGE TO DIRECTORY
   files.forEach(fileName => {
 
@@ -50,7 +50,7 @@ async function createDirFromFile({files, allowType, disallowType, excludePath}) 
     
     // Early Exit: Path includes excluded pattern
     // For example, we don't want to convert the site index file (homepage)
-    if (excludePath && excludePath.filter(str => file.path.includes(str)).length) return;
+    if (excludePaths && excludePaths.filter(str => file.path.includes(str)).length) return;
 
     // CREATE NEW DIRECTORY IN /DIST
     // rimraf.sync(filePath);
