@@ -53,13 +53,13 @@ function replaceIncludes({file, allowType, disallowType}) {
         // --> Do nothing
         // Case: User omitted `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
         // --> convert `/footer` to `/footer.html`)
-        if (!convertPageToDirectory && !hasExtension) formattedIncludePath = `${includePath}.html`;
+        if (convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}.html`;
         // Case: User added `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
         // --> convert `/footer.html` to `/footer/index.html`)
-        if (convertPageToDirectory && hasExtension) formattedIncludePath = includePath.replace('.html', '/index.html');
+        if (!convertPageToDirectory.disabled && hasExtension) formattedIncludePath = includePath.replace('.html', '/index.html');
         // Case: User omitted `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
         // --> convert `/footer` to `/footer/index.html`)
-        if (convertPageToDirectory && !hasExtension) formattedIncludePath = `${includePath}/index.html`;
+        if (!convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}/index.html`;
         // Get contents of target include file
         const content = fs.readFileSync(formattedIncludePath, 'utf-8');
         // Add included content in DOM before placeholder element

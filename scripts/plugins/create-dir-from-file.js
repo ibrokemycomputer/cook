@@ -33,7 +33,7 @@ const {getSrcConfig} = require('../utils/get-src');
  */
 async function createDirFromFile({files, allowType, disallowType, excludePaths}) {
   // CONVERT EACH ALLOWED .HTML PAGE TO DIRECTORY
-  files.forEach(fileName => {
+  files.forEach((fileName,i) => {
 
     // Get file's meta info (ext,name,path)
     const file = getSrcConfig({fileName, excludeSrc: true });
@@ -50,8 +50,10 @@ async function createDirFromFile({files, allowType, disallowType, excludePaths})
     
     // Early Exit: Path includes excluded pattern
     // For example, we don't want to convert the site index file (homepage)
-    if (excludePaths && excludePaths.filter(str => file.path.includes(str)).length) return;
-
+    const matchedExcludePath = excludePaths && excludePaths.filter(str => file.path.includes(str));
+    const matchedExcludePathLen = matchedExcludePath.length;
+    if (matchedExcludePathLen) return;
+  
     // CREATE NEW DIRECTORY IN /DIST
     // rimraf.sync(filePath);
     // fs.mkdirSync(filePath);
@@ -61,14 +63,14 @@ async function createDirFromFile({files, allowType, disallowType, excludePaths})
     // Move xxxx.html file to new directory xxxx/index.html
     fs.renameSync(`${filePath}.html`, `${filePath}/index.html`)
 
+    // UPDATE FILE PATH TO NEW DIST LOCATION
+    // In order to update the pages' new location, instead of the old,
+    // we need to update the /dist path to reflect the new, directory location
+    files[i] = files[i].replace('.html', '/index.html').replace('index/index.html','index.html')
+
     // Show terminal message
     Logger.success(`/${filePath}.html - Converted to [directory]: ${ chalk.green(`${filePath}/index.html`) }`);
   });
-
-  // CHANGE FILES' STORED /DIST PATH
-  // In order to update the pages' new location, instead of the old,
-  // we need to update the /dist path to reflect the new, directory location
-  files.forEach((f,i) => files[i] = files[i].replace('.html', '/index.html').replace('index/index.html','index.html'));
 }
 
 // EXPORT

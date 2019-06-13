@@ -78,7 +78,7 @@ async function build() {
   getSrcFiles(async (files) => {
 
     // PLUGIN: Convert allowed /dist .html file to directory
-    if (convertPageToDirectory) createDirFromFile({files, allowType: ['.html']});
+    if (!convertPageToDirectory.disabled) createDirFromFile({files, allowType: ['.html'], excludePaths: convertPageToDirectory.excludePaths || [] });
 
     // THE FILES LOOP
     await recurseFiles(0);
