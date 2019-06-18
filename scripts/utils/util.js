@@ -9,7 +9,7 @@ const jsdomLib = require('jsdom');
 const { JSDOM } = jsdomLib;
 
 // Config
-const {activeAttr,convertPageToDirectory,includeAttr,inlineAttr} = require(`${cwd}/config/main.js`);
+const {activeAttr,convertPageToDirectory,includeAttr,inlineAttr,parentActiveAttr} = require(`${cwd}/config/main.js`);
 
 
 // JSDOM CONFIG
@@ -26,6 +26,7 @@ const jsdom = {
 // Attribute values
 const attr = {
   active: activeAttr || 'data-active',
+  parentActive: parentActiveAttr || 'data-parent-active',
   include: includeAttr || ['include', 'data-include'],
   inline: inlineAttr || ['inline', 'data-inline'],
 }
