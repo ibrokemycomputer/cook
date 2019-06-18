@@ -24,7 +24,10 @@ const {distPath,sitemapUrl,srcPath} = require(`${cwd}/config/main.js`);
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
-function generateSitemap({file, allowType, disallowType}) {
+function generateSitemap(sitemapUrl) {
+  // Early Exit: No user-defined site domain in `/config/main.js`
+  if (!sitemapUrl || !sitemapUrl.length) return;
+  
   try {
     // Get directory and .html file paths from `/dist`
     let files = fs.readdirSync(distPath);

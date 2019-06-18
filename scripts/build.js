@@ -148,7 +148,7 @@ async function build() {
   });
 
   // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
-  if (sitemapUrl && sitemapUrl.length) generateSitemap();
+  generateSitemap(sitemapUrl);
 
   // CUSTOM PLUGINS: Run custom user plugins after file loop
   await customPlugins({data, plugins: plugins.after, log: 'After' });
