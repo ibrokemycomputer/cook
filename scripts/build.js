@@ -16,6 +16,7 @@ const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
 const customPlugins = require('./plugins/custom-plugins');
+const generateSitemap = require('./plugins/generate-sitemap');
 const minifySrc = require('./plugins/minify-src');
 const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
@@ -37,6 +38,7 @@ const {
   pagePerformanceTest, 
   plugins = {before: [], default: [], after: []}, 
   replaceExternalLinkProtocol = {enabled:true}, 
+  sitemapUrl,
 } = require(`${cwd}/config/main.js`);
 
 // USER 'DATA.JS' CONFIG
@@ -144,6 +146,9 @@ async function build() {
       recurseFiles(index+=1);
     }
   });
+
+  // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
+  if (sitemapUrl && sitemapUrl.length) generateSitemap();
 
   // CUSTOM PLUGINS: Run custom user plugins after file loop
   await customPlugins({data, plugins: plugins.after, log: 'After' });
