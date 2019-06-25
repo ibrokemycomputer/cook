@@ -42,6 +42,7 @@ module.exports = {
   attr,
   convertExternalLinks,
   customError,
+  customKill,
   getFileName,
   getFileParts,
   getPaths,
@@ -95,6 +96,19 @@ function customError(e, label = 'Error') {
 }
 
 /**
+ * @description Custom terminal `kill -9 node` when you need to stop
+ * all terminal activity on exception/error.
+ * For example, a page needs to show fetched content. You don't want a deploy to occur 
+ * if the source returned a rate limit, or didn't return anything and you don't want to 
+ * show `N/A` or equivalent on screen.
+ * @param {String} msg - The console message before terminating
+ * @private
+ */ 
+function customKill(msg) {
+  execSync(`echo ${chalk.red(msg)} && killall -9 node`, {stdio: 'inherit'});
+}
+
+/**
  * @description Return filename from path
  * @param {String} path - The file path (/path/to/file.ext)
  * @param {String} distPath - The path to the /dist directory
@@ -126,7 +140,6 @@ function getFileParts(path) {
   const fileNameSplit = fileName.split('.');
   return { name: fileNameSplit[0], nameIfIndex: fileNameIfIndex, ext: fileNameSplit[1] };
 }
-
 
 /**
  * @description Recursively grab all paths in a folder structure
