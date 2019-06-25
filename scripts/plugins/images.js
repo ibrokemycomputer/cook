@@ -16,8 +16,6 @@ const imageminWebp = require('imagemin-webp');
 const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 
-const fileloop = require('filehound');
-
 // Config
 // Config
 const {customImgDir, customImgTypes, distPath, svgOpts} = require(`${cwd}/config/main.js`);
