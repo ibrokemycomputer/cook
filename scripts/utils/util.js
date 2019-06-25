@@ -3,6 +3,7 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 // JSDOM
 const jsdomLib = require('jsdom');
@@ -51,6 +52,7 @@ module.exports = {
   isAllowedType,
   isExtension,
   jsdom,
+  promiseAll,
   replaceExternalLinkProtocolDefaults,
   setSrc,
   testSrc,
@@ -214,30 +216,6 @@ function hasExtension(str) {
 }
 
 /**
- * @description Get a new JSDOM document/object from the passed in string source
- * @docs https://github.com/jsdom/jsdom
- * @param {Object} opts - The arguments object
- * @property {String} fileSource - The source to make a traversable document from
- * @property {Object} [options] - Optional JSDOM options config object
- * @returns {Object}
- */
-function newJSDOM({src,options}) {
-  const opts = options || { url: jsdom.baseUrl };
-  return new JSDOM(src, opts);
-}
-
-/**
- * @description Get a new JSDOM fragment from the passed in string source
- * @docs https://github.com/jsdom/jsdom
- * @param {Object} opts - The arguments object
- * @property {String} fileSource - The source to make a traversable document from
- * @returns {Object}
- */
-function newFrag({src}) {
-  return JSDOM.fragment(src);
-}
-
-/**
  * @description Pass in an 'opt-in' or 'opt-out' array to match current file against by extension type
  * @param {Object} opts - The argument object
  * @property {String} fileExt - The extension of the file
@@ -269,6 +247,39 @@ function isExtension(fileName, target) {
   const ext = fileName.split('.').pop();
   if (isString) return ext === target;
   else return target.indexOf(ext) > -1;
+}
+
+/**
+ * @description Get a new JSDOM document/object from the passed in string source
+ * @docs https://github.com/jsdom/jsdom
+ * @param {Object} opts - The arguments object
+ * @property {String} fileSource - The source to make a traversable document from
+ * @property {Object} [options] - Optional JSDOM options config object
+ * @returns {Object}
+ */
+function newJSDOM({src,options}) {
+  const opts = options || { url: jsdom.baseUrl };
+  return new JSDOM(src, opts);
+}
+
+/**
+ * @description Get a new JSDOM fragment from the passed in string source
+ * @docs https://github.com/jsdom/jsdom
+ * @param {Object} opts - The arguments object
+ * @property {String} fileSource - The source to make a traversable document from
+ * @returns {Object}
+ */
+function newFrag({src}) {
+  return JSDOM.fragment(src);
+}
+
+/**
+ * @description 
+ * @returns {Object}
+ */
+function promiseAll(arr, method) {
+  const promises = arr.map(method);
+  return Promise.all(promises);
 }
 
 /**
