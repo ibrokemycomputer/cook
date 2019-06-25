@@ -13,9 +13,11 @@ const chalk = require('chalk');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
-// Config
-let {distPath,replaceExternalLinkProtocol} = require(`${cwd}/config/main.js`);
-replaceExternalLinkProtocol = replaceExternalLinkProtocol || {};
+// USER 'MAIN.JS' CONFIG
+const {
+  distPath,
+  replaceExternalLinkProtocol = {enabled:true},
+} = require(`${cwd}/config/main.js`);
 
 
 // DEFINE
@@ -28,6 +30,9 @@ replaceExternalLinkProtocol = replaceExternalLinkProtocol || {};
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
 function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
+  // Early Exit: User opted out of this plugin
+  if (!replaceExternalLinkProtocol.enabled) return;
+  
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;

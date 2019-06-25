@@ -45,8 +45,8 @@ async function customPlugins({data = {}, file, log, plugins}) {
       await new plugin[Object.keys(plugin)[0]]({file, data}).init();
       await recursePlugins(index+=1);
     }
-    catch (e) {
-      utils.customError(e);
+    catch (err) {
+      utils.customError(err);
       return;
     }
   };

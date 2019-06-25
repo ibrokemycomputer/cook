@@ -3,19 +3,20 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs');
-const utils = require(`./utils/util.js`);
+// const utils = require(`./utils/util.js`);
 const Logger = require(`./utils/logger.js`);
-const {generatePages} = require('./utils/performance');
+// const {generatePages} = require('./utils/performance');
 
 
 // PLUGINS
 // -----------------------------
-const babelify = require('./plugins/babelify');
-const cleanupDist = require('./plugins/cleanup-dist');
+// const babelify = require('./plugins/babelify');
+// const cleanupDist = require('./plugins/cleanup-dist');
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
 const customPlugins = require('./plugins/custom-plugins');
+const generateSitemap = require('./plugins/generate-sitemap-xml');
 const minifySrc = require('./plugins/minify-src');
 const replaceIncludes = require('./plugins/replace-includes.js');
 const replaceInline = require('./plugins/replace-inline.js');
@@ -24,7 +25,7 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-const {compressAndNextGen, optimizeSVG, replaceImgTags} = require('./plugins/images.js');
+// const {compressAndNextGen, optimizeSVG, replaceImgTags} = require('./plugins/images.js');
 
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
@@ -32,17 +33,18 @@ const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
 // USER 'MAIN.JS' CONFIG
 const {
   convertPageToDirectory, 
-  optimizeSVGs, 
-  optimizeImages, 
-  pagePerformanceTest, 
+  // optimizeSVGs, 
+  // optimizeImages, 
+  // pagePerformanceTest,
   plugins = {before: [], default: [], after: []}, 
   replaceExternalLinkProtocol = {enabled:true}, 
+  sitemapUrl,
 } = require(`${cwd}/config/main.js`);
 
 // USER 'DATA.JS' CONFIG
 // Get user's data config object. We pass it into plugins (when necessary) 
-// so that additional data can be added from plugins instead of needing 
-// to manually added everything to `/config/data.js`
+// so that additional data can be added to it from plugins instead of needing 
+// to manually define everything from the start in `/config/data.js`
 const data = require(`${cwd}/config/data.js`);
 
 
@@ -78,7 +80,7 @@ async function build() {
   getSrcFiles(async (files) => {
 
     // PLUGIN: Convert allowed /dist .html file to directory
-    if (!convertPageToDirectory.disabled) createDirFromFile({files, allowType: ['.html'], excludePaths: convertPageToDirectory.excludePaths || [] });
+    createDirFromFile({files, allowType: ['.html'] });
 
     // THE FILES LOOP
     await recurseFiles(0);
@@ -104,7 +106,7 @@ async function build() {
       replaceTemplateStrings({file, data, allowType: ['.html']});
 
       // PLUGIN: Add missing `http://` to user-added external link `[href]` values (`[href="www.xxxx.com"]`)
-      if (replaceExternalLinkProtocol.enabled) replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
+      replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
       
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
@@ -144,6 +146,9 @@ async function build() {
       recurseFiles(index+=1);
     }
   });
+
+  // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
+  generateSitemap(sitemapUrl);
 
   // CUSTOM PLUGINS: Run custom user plugins after file loop
   await customPlugins({data, plugins: plugins.after, log: 'After' });

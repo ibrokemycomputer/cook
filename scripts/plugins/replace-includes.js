@@ -30,7 +30,7 @@ function replaceIncludes({file, allowType, disallowType}) {
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
   
-  let errorLabel, errorPath, formattedIncludePath, hasInclude, includePath;
+  let formattedIncludePath, hasInclude, includePath;
   let dom = utils.jsdom.dom({src: file.src});
   // Allow `[include]` or `[data-include]` by default
   const includeSelector = utils.getSelector(utils.attr.include);
@@ -40,14 +40,14 @@ function replaceIncludes({file, allowType, disallowType}) {
   if (!includeItems) return;
 
   // Loop through each found include call
-  includeItems.forEach((el,i) => {
+  includeItems.forEach(el => {
     // If attribute found and it has a path
     hasInclude = hasAttribute(el, utils.attr.include);
     if (hasInclude && hasInclude.path && hasInclude.path.length) {
       try {
         // Get full system path to the include file
         includePath = formattedIncludePath = path.resolve(`${distPath}/${hasInclude.path}`);
-        // Convert path to make file location
+        // Format the path before doing a file lookup, in case the user added a malformed path
         const hasExtension = !!includePath.match(/.html/g);
         // Case: User added `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
         // --> Do nothing
@@ -64,22 +64,23 @@ function replaceIncludes({file, allowType, disallowType}) {
         const content = fs.readFileSync(formattedIncludePath, 'utf-8');
         // Add included content in DOM before placeholder element
         el.insertAdjacentHTML('beforebegin', content);
-        // // Remove placeholder element from DOM
+        // Remove placeholder element from DOM (`<div include="/includes/xxxx"></div>`)
         el.remove();
         // Show terminal message
         Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(formattedIncludePath.split(distPath)[1]) }`);
       }
-      catch (error) {
-        errorLabel = `Invalid include path in '${file.path}`;
-        errorPath = error.path.split(cwd)[1];
-        Logger.error(`${errorPath}\n${ chalk.red(errorLabel) }`);
+      catch (err) {
+        utils.customError(err);
       }
     }
   });
 
   // Store updated file source
   file.src = utils.setSrc({dom});
-  
+
+  // TODO: For now, includes cannot include other includes. 
+  // This was causing an infinite loop
+  // ---
   // Query again for includes. If sub-includes found, run again
   // dom = utils.jsdom.dom({src: file.src});
   // const newIncludeSelector = utils.getSelector(utils.attr.include);
@@ -90,10 +91,17 @@ function replaceIncludes({file, allowType, disallowType}) {
 // HELPER METHODS
 // -----------------------------
 
+/**
+ * @description Match target attribute(s) against target DOM element
+ * @param {Object} el - The element to check attributes
+ * @param {*} attrs - The attributes to compare against
+ * @returns {Boolean}
+ * @private
+ */
 function hasAttribute(el, attrs) {
   let tmpArr = [];
   if (typeof attrs === 'string') tmpArr.push({ type: utils.attr.include, path: el.getAttribute(utils.attr.include) });
-  else attrs.forEach((a,i) => tmpArr.push({ type: a, path: el.getAttribute(a) }));
+  else attrs.forEach(a => tmpArr.push({ type: a, path: el.getAttribute(a) }));
   // Filter out falsey
   tmpArr = tmpArr.filter(a => a.path);
   // Return boolean

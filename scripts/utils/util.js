@@ -89,8 +89,8 @@ function customError(e, label = 'Error') {
     const fileSplit = fileName.split(' (');
     const filePart = fileSplit[0];
     const filePath = fileSplit[1];
-    console.log(chalk.grey(`${filePart.trim()} (line ${lineNumber})`));
-    console.log(chalk.grey(filePath));
+    if (filePart) console.log(chalk.grey(`${filePart.trim()} (line ${lineNumber})`));
+    if (filePath) console.log(chalk.grey(filePath));
   }
 }
 
@@ -119,7 +119,7 @@ function getFileName(path, distPath) {
  */ 
 function getFileParts(path) {
   const fileSplit = path.split('/');
-  const fileName = fileSplit[fileSplit.length - 1]
+  const fileName = fileSplit[fileSplit.length - 1];
   // If last split item is `index.html`, store its parent directory (if option to convert pages to directories is enabled)
   // If not, there will be a lot of pages with `file.name` as
   const fileNameIfIndex = !convertPageToDirectory.disabled && fileName === 'index.html' ? fileSplit[fileSplit.length - 2] : undefined;

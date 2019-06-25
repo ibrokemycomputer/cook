@@ -13,8 +13,8 @@ const rimraf = require('rimraf');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
-// Config
-const {distPath} = require(`${cwd}/config/main.js`);
+// USER 'MAIN.JS' CONFIG
+const {convertPageToDirectory,distPath} = require(`${cwd}/config/main.js`);
 
 // GET SOURCE
 const {getSrcConfig} = require('../utils/get-src');
@@ -31,7 +31,10 @@ const {getSrcConfig} = require('../utils/get-src');
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  * @param {Array} [obj.excludePaths] - Disallowed certain files (Opt-out)
  */
-async function createDirFromFile({files, allowType, disallowType, excludePaths}) {
+async function createDirFromFile({files, allowType, disallowType, excludePaths = []}) {
+  // Early Exit: User opted out of this plugin
+  if (convertPageToDirectory.disabled) return;
+
   // CONVERT EACH ALLOWED .HTML PAGE TO DIRECTORY
   files.forEach((fileName,i) => {
 
@@ -50,13 +53,14 @@ async function createDirFromFile({files, allowType, disallowType, excludePaths})
     
     // Early Exit: Path includes excluded pattern
     // For example, we don't want to convert the site index file (homepage)
-    const matchedExcludePath = excludePaths && excludePaths.filter(str => file.path.includes(str));
+    // ---
+    // Did user add excluded paths and there are defaults passed into this method?
+    const combinedExcludePaths = [...excludePaths, ...convertPageToDirectory.excludePaths];
+    const matchedExcludePath = combinedExcludePaths && combinedExcludePaths.filter(str => file.path.includes(str));
     const matchedExcludePathLen = matchedExcludePath.length;
     if (matchedExcludePathLen) return;
   
     // CREATE NEW DIRECTORY IN /DIST
-    // rimraf.sync(filePath);
-    // fs.mkdirSync(filePath);
     fs.mkdirpSync(filePath);
 
     // MOVE PAGE TO NEW DIRECTORY

@@ -4,7 +4,7 @@ const cwd = process.cwd();
 const browserSync = require('browser-sync').create('Dev Server');
 const chalk = require('chalk');
 const packageJSON = require('../package.json');
-const Logger = require(`./utils/logger.js`);
+// const Logger = require(`./utils/logger.js`);
 const { execSync } = require('child_process');
 
 // Config
@@ -50,7 +50,7 @@ browserSync.emitter.on('init', () => {
 // --------------------------------
 // Watch changes to `/src` files and run the build process to copy
 // to `/dist` equivalent, so we can run livereload on `/dist` to
-// view includes.
+// view replaced includes, and to avoid mutating `/src` files directly.
 watchFiles.forEach(path => {
   // Watch `/src` files for changes
   browserSync.watch(`${srcPath}${path}`).on('change', file => {
