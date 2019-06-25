@@ -32,12 +32,10 @@ const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
 
 // USER 'MAIN.JS' CONFIG
 const {
-  convertPageToDirectory, 
   // optimizeSVGs, 
   // optimizeImages, 
   // pagePerformanceTest,
   plugins = {before: [], default: [], after: []}, 
-  replaceExternalLinkProtocol = {enabled:true}, 
   sitemapUrl,
 } = require(`${cwd}/config/main.js`);
 
