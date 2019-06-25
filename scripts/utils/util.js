@@ -235,6 +235,8 @@ function newFrag({src}) {
  */
 function isAllowedType({file,allowType,disallowType}) {
   let {ext} = file;
+  // Early Exit: No valid extension
+  if (!ext) return false;
   ext = ext.charAt(0) === '.' ? ext : `.${ext}`;
   // If file extension NOT in allowed array, return false
   if (allowType && allowType.indexOf(ext) === -1) return false;
