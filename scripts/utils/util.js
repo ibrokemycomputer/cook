@@ -82,6 +82,7 @@ function convertExternalLinks(source) {
  */ 
 function customError(e, label = 'Error') {
   const errorStackFileLine = e.stack.split('\n')[1];
+  if (!errorStackFileLine) return e;
   const splitColon = errorStackFileLine.split(':');
   const lineNumber = splitColon[splitColon.length - 2];
   const fileName = splitColon[splitColon.length - 3];
