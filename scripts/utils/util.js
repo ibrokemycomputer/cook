@@ -376,7 +376,7 @@ async function runFileLoop(files, method) {
   // });
   
   // End timer
-  loading.stop(`Files Modified ${chalk.grey(`(${loading.total})`)} ${timer.end()}`);
+  loading.stop(`Files Modified (${loading.total}) ${timer.end()}`);
 }
 
 /**
