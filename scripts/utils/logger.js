@@ -1,7 +1,7 @@
 // REQUIRE
 // ----------------------------------
 const chalk = require('chalk');
-
+const deepClone = require('lodash/clonedeep');
 
 // DEFINE
 // ----------------------------------
@@ -16,9 +16,18 @@ let types = {
   system: (message, indent=0) => console.log(`${setIndent(indent)}${ chalk.blue(message) }`),
   warning: (message, indent=0) => console.log(`${setIndent(indent)}${ chalk.yellow('warn') }`, message),
 }
+// Clone types for persistance option
+const persist = deepClone(types);
 
+// DISABLE OUTPUT IF ENV VARIABLE SET
+// ------------------------------------
 // Mute logging if environment var set
 if (!process.env.LOGGER) Object.keys(types).forEach(key => types[key] = () => ({}));
+
+// 'ALWAYS SHOW' OPTION
+// ----------------------------------
+// Always show loggers marked 'persist': `Logger.persist.header(...)`
+types.persist = persist;
 
 // HELPER METHODS
 // ----------------------------------

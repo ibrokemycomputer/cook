@@ -7,7 +7,7 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const fs = require('fs');
+const fs = require('fs').promises;
 const utils = require(`./util.js`);
 const Logger = require(`./logger.js`);
 
@@ -35,7 +35,7 @@ module.exports = {
  * @returns {Object}
  * @private
  */
-function getSrcConfig({fileName, excludeSrc = false }) {
+async function getSrcConfig({fileName, excludeSrc = false }) {
   // Init obj
   let file = {};
   
@@ -50,7 +50,8 @@ function getSrcConfig({fileName, excludeSrc = false }) {
   if (excludeSrc) return file;
   
   // Get file source
-  file.src = fs.readFileSync(fileName, 'utf-8');
+  // file.src = fs.readFileSync(fileName, 'utf-8');
+  file.src = await fs.readFile(fileName, 'utf-8');
   // Sanitize comments that have non-closing html elements in them. JSDOM will try to close it in the DOM
   // but since there is no starting tag (it's in the comment) it will break the dom
   file.src = removeCommentTags(file.src);
@@ -64,7 +65,7 @@ function getSrcConfig({fileName, excludeSrc = false }) {
  * @param {Object} cb - The callback function once the files have been grouped
  * @private
  */
-function getSrcFiles(cb) {
+async function getSrcFiles() {
   // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
 
   // Define files var
@@ -94,9 +95,8 @@ function getSrcFiles(cb) {
     // Get only the allowed files by extension (.css, .html)
     files = files.filter(fileName => utils.isExtension(fileName, allowedExt));
   }
-
   // Run tasks on matched files
-  if (cb) cb(files);
+  return files;
 }
 
 /**
@@ -104,7 +104,7 @@ function getSrcFiles(cb) {
  * @param {Object} cb - The callback function once the images have been grouped
  * @private
  */
-function getSrcImages(cb) {
+async function getSrcImages(cb) {
   // Show terminal message: Start
   Logger.header('\nImage Tasks');
   
@@ -139,7 +139,7 @@ function removeCommentTags(src) {
   matches.forEach(m => {
     replaces = m.replace('<', '').replace('>', '');
     src = src.replace(m, replaces);
-  })
+  });
   return src;
 }
 

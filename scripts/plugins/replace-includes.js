@@ -70,7 +70,7 @@ function replaceIncludes({file, allowType, disallowType}) {
         Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(formattedIncludePath.split(distPath)[1]) }`);
       }
       catch (err) {
-        utils.customError(err);
+        utils.customError(err, `replace-includes.js`);
       }
     }
   });

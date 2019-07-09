@@ -29,21 +29,21 @@ function copySrc() {
     const changedSrcPath = changedPath;
     const changedDistPath = changedPath.replace(srcPath, distPath);
     // Show terminal message: Start
-    Logger.header(`\nCopied Updated Page`);
+    Logger.persist.header(`\nCopied Updated Page`);
     // Copy changed page to `/dist` only
     fs.copySync(changedSrcPath, changedDistPath);
     // Show terminal message
-    Logger.success(`/${changedSrcPath} copied to /${changedDistPath}`);
+    Logger.persist.success(`/${changedSrcPath} copied to /${changedDistPath}`);
   }
   // FULL BUILD
   // Otherwise, copy all contents of `/src` to `/dist`
   else {
     // Show terminal message: Start
-    Logger.header('\nCopy /src to /dist');
+    Logger.persist.header('\nCopy /src to /dist');
     // Copy contents of `/src` to `/dist`
     fs.copySync(srcPath, distPath);
     // Show terminal message
-    Logger.success(`Content from /${srcPath} copied to /${distPath}`);
+    Logger.persist.success(`Content from /${srcPath} copied to /${distPath}`);
   }
 }
 

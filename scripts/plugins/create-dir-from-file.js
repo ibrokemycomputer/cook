@@ -9,9 +9,12 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
-const rimraf = require('rimraf');
+const ora = require('ora');
+// const rimraf = require('rimraf');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
+const Spinner = require(`${cwd}/node_modules/pathfinder/scripts/utils/spinner.js`);
+const Timer = require(`${cwd}/node_modules/pathfinder/scripts/utils/timer.js`);
 
 // USER 'MAIN.JS' CONFIG
 const {convertPageToDirectory,distPath} = require(`${cwd}/config/main.js`);
@@ -35,46 +38,79 @@ async function createDirFromFile({files, allowType, disallowType, excludePaths =
   // Early Exit: User opted out of this plugin
   if (convertPageToDirectory.disabled) return;
 
+  // Show terminal message: Start
+  Logger.persist.header(`\nCreate Directories from Files`);
+
+  // Start timer
+  const timer = new Timer();
+  timer.start();
+
+  // Start percentage loading
+  const loading = new Spinner();
+  loading.start(`Create Directory from File`);
+  loading.count = 0;
+  
   // CONVERT EACH ALLOWED .HTML PAGE TO DIRECTORY
-  files.forEach((fileName,i) => {
-
-    // Get file's meta info (ext,name,path)
-    const file = getSrcConfig({fileName, excludeSrc: true });
+  await utils.promiseAll(
+    files, 
+    f => (createDirectory)(f, files, allowType, disallowType, excludePaths, loading),
+    progress => {
+      // Remove manual, static .html pages in `/docs` so they don't appear in the total # display
+      if (loading.label) {
+        loading.count += 1;
+        loading.updateAsPercentage(files[loading.count-1], loading.count, loading.total, true);
+      }
+      else loading.total -= 1;
+    }
+  );
   
-    // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType({file,allowType,disallowType});
-    if (!allowed) return;
+  // End: Loading terminal message
+  loading.stop(`Directories Created ${chalk.grey(`(${loading.count})`)} ${timer.end()}`);
+}
 
-    // Get file path without extension
-    const filePath = file.path.split('.')[0];
-    
-    // Early Exit: Do not create directory if current file is an index.html page
-    if (file.name === 'index') return;
-    
-    // Early Exit: Path includes excluded pattern
-    // For example, we don't want to convert the site index file (homepage)
-    // ---
-    // Did user add excluded paths and there are defaults passed into this method?
-    const combinedExcludePaths = [...excludePaths, ...convertPageToDirectory.excludePaths];
-    const matchedExcludePath = combinedExcludePaths && combinedExcludePaths.filter(str => file.path.includes(str));
-    const matchedExcludePathLen = matchedExcludePath.length;
-    if (matchedExcludePathLen) return;
+
+// HELPER METHODS
+// -----------------------------
+
+async function createDirectory(fileName, filesArr, allowType, disallowType, excludePaths, loading) {
+
+  // Get file's meta info (ext,name,path)
+  const file = await getSrcConfig({fileName, excludeSrc: true });
   
-    // CREATE NEW DIRECTORY IN /DIST
-    fs.mkdirpSync(filePath);
+  // Early Exit: File type not allowed
+  const allowed = utils.isAllowedType({file, allowType, disallowType});
+  if (!allowed) return;
+  
+  // Early Exit: Do not create directory if current file is an index.html page
+  if (file.name === 'index') return;
+  
+  // Early Exit: Path includes excluded pattern
+  // For example, we don't want to convert the site index file (homepage)
+  // ---
+  // Did user add excluded paths and there are defaults passed into this method?
+  const combinedExcludePaths = [...excludePaths, ...convertPageToDirectory.excludePaths];
+  const matchedExcludePath = combinedExcludePaths && combinedExcludePaths.filter(str => file.path.includes(str));
+  const matchedExcludePathLen = matchedExcludePath.length;
+  if (matchedExcludePathLen) return;
 
-    // MOVE PAGE TO NEW DIRECTORY
-    // Move xxxx.html file to new directory xxxx/index.html
-    fs.renameSync(`${filePath}.html`, `${filePath}/index.html`)
+  // Get file path without extension
+  const filePath = file.path.split('.')[0];
 
-    // UPDATE FILE PATH TO NEW DIST LOCATION
-    // In order to update the pages' new location, instead of the old,
-    // we need to update the /dist path to reflect the new, directory location
-    files[i] = files[i].replace('.html', '/index.html').replace('index/index.html','index.html')
+  // CREATE NEW DIRECTORY IN /DIST
+  await fs.mkdirp(filePath);
 
-    // Show terminal message
-    Logger.success(`/${filePath}.html - Converted to [directory]: ${ chalk.green(`${filePath}/index.html`) }`);
-  });
+  // MOVE PAGE TO NEW DIRECTORY
+  // Move xxxx.html file to new directory xxxx/index.html
+  await fs.rename(`${filePath}.html`, `${filePath}/index.html`)
+
+  // UPDATE FILE PATH TO NEW DIST LOCATION
+  // In order to update the pages' new location, instead of the old,
+  // we need to update the /dist path to reflect the new, directory location
+  const index = filesArr.indexOf(fileName);
+  filesArr[index] = filesArr[index].replace('.html', '/index.html').replace('index/index.html','index.html')
+
+  // Loading message: Update
+  loading.label = `/${filePath}.html - Converted to [directory]: ${ chalk.green(`${filePath}/index.html`) }`;
 }
 
 // EXPORT

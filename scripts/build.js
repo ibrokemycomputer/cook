@@ -2,10 +2,15 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const fs = require('fs');
-// const utils = require(`./utils/util.js`);
+const fs = require('fs').promises;
+const ora = require('ora');
 const Logger = require(`./utils/logger.js`);
+const Spinner = require(`./utils/spinner.js`);
 // const {generatePages} = require('./utils/performance');
+
+// UTILS
+const utils = require(`./utils/util.js`);
+const {runFileLoop} = utils;
 
 
 // PLUGINS
@@ -48,63 +53,61 @@ const data = require(`${cwd}/config/data.js`);
 
 // BUILD
 // -----------------------------
-async function build() {
-  // Show init message
-  console.log(`${ chalk.blue('\n[Build]') } ${ chalk.blue.bold('`npm run build`') }`);
+// async function build() {
 
-  // PLUGIN: Create `/dist` if not already made
-  createDist();
+class Build {
 
-  // PLUGIN: Copy `/src` to `/dist`
-  copySrc();
+  constructor() {}
 
-  // CUSTOM PLUGINS: Run custom user plugins before file loop
-  await customPlugins({data, plugins: plugins.before, log: 'Before' });
+  async init() {
 
-  // PERFORMANCE: Generate X number of pages to test performance
-  // if (pagePerformanceTest > 0) generatePages(pagePerformanceTest); 
+    // Show init message
+    console.log(`${ chalk.blue('\n[Build]') } ${ chalk.blue.bold('`npm run build`') }`);
 
-  // THE IMAGES LOOP
-  // getSrcImages(images => {
-  //   images.forEach(image => {
-  //     // PLUGIN: Optimize .svg files with SVGO
-  //     if (optimizeSVGs) optimizeSVG(image, 'image');
-  //     // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
-  //     if (optimizeImages) compressAndNextGen(image);
-  //   });
-  // });
+    // PLUGIN: Create `/dist` if not already made
+    createDist();
 
-  // GET THE ALLOWED FILES 
-  getSrcFiles(async (files) => {
+    // PLUGIN: Copy `/src` to `/dist`
+    copySrc();
+
+    // CUSTOM PLUGINS: Run custom user plugins before file loop
+    await customPlugins({data, plugins: plugins.before, log: 'Before' });
+    
+    // PERFORMANCE: Generate X number of pages to test performance
+    // if (pagePerformanceTest > 0) generatePages(pagePerformanceTest); 
+
+    // THE IMAGES LOOP
+    // getSrcImages(images => {
+    //   images.forEach(image => {
+    //     // PLUGIN: Optimize .svg files with SVGO
+    //     if (optimizeSVGs) optimizeSVG(image, 'image');
+    //     // PLUGIN: Optimize raster images (jpg, jpeg, png) and convert to webp
+    //     if (optimizeImages) compressAndNextGen(image);
+    //   });
+    // });
+
+    // GET THE ALLOWED FILES 
+    const files = await getSrcFiles();
 
     // PLUGIN: Convert allowed /dist .html file to directory
-    createDirFromFile({files, allowType: ['.html'] });
+    await createDirFromFile({files, allowType: ['.html'] });
 
     // THE FILES LOOP
-    await recurseFiles(0);
-    async function recurseFiles(index) {
-      // Stop recursion if no more files
-      if (!files[index]) return;
-
-      // -----
-
-      // Show Terminal Message: Start
-      Logger.header(`\n${files[index]}`);
-      const timeStart = new Date().getTime();
-      
-      // Open file and store file info for use in plugins
-      // We'll pass around the source string between the plugins
-      // Then write back the updated/modified source to the file at the end
-      let file = getSrcConfig({fileName: files[index]});
+    await runFileLoop(files, fileLoop);
+    async function fileLoop(fileName) {
+      // Read and store the target file source.
+      // We'll pass the string around between the plugins
+      // then write back the updated/modified source to the file at the end
+      let file = await getSrcConfig({fileName});
 
       // CUSTOM PLUGINS: Run custom user plugins during file loop
       await customPlugins({file, data, plugins: plugins.default});
-
+      
       // PLUGIN: Render all ES6 template strings 
       replaceTemplateStrings({file, data, allowType: ['.html']});
 
       // PLUGIN: Add missing `http://` to user-added external link `[href]` values (`[href="www.xxxx.com"]`)
-      replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
+      await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
       
       // PLUGIN: Replace `[data-include]` in files
       replaceIncludes({file, allowType: ['.html']});
@@ -133,26 +136,23 @@ async function build() {
       minifySrc({file});
       
       // Write new, modified source back to the file
-      fs.writeFileSync(file.path, file.src);
+      fs.writeFile(file.path, file.src);
 
-      
-      // Show Terminal Message: End
-      const timeEnd = new Date().getTime();
-      Logger.done(`${(timeEnd-timeStart)/1000}s`)
-
-      // Recurse and init the next plugin
-      recurseFiles(index+=1);
+      return fileName;
     }
-  });
 
-  // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
-  generateSitemap(sitemapUrl);
+    // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
+    generateSitemap(sitemapUrl);
 
-  // CUSTOM PLUGINS: Run custom user plugins after file loop
-  await customPlugins({data, plugins: plugins.after, log: 'After' });
+    // CUSTOM PLUGINS: Run custom user plugins after file loop
+    await customPlugins({data, plugins: plugins.after, log: 'After' });
 
-  // PLUGIN: Remove /dist/includes after build
-  // cleanupDist();
+    // PLUGIN: Remove /dist/includes after build
+    // cleanupDist();
+  }
 
 };
-build();
+
+// Run build
+const build = new Build();
+build.init();

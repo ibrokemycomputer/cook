@@ -22,7 +22,7 @@ function createDist() {
   if (process.env.DEV_CHANGED_PAGE) return;
 
   // Show terminal message: Start
-  Logger.header(`\nCreate /${distPath}`);
+  Logger.persist.header(`\nCreate /${distPath}`);
 
   // Remove `/dist` (fails silently if not there as that is the intended result)
   rimraf.sync(distPath);
@@ -30,7 +30,7 @@ function createDist() {
   fs.mkdirSync(distPath);
 
   // Show terminal message: Done
-  Logger.success (`/${distPath} created`);
+  Logger.persist.success (`/${distPath} created`);
 }
 
 

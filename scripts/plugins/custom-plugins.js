@@ -26,16 +26,22 @@ const {pluginPath} = require(`${cwd}/config/main.js`);
 async function customPlugins({data = {}, file, log, plugins}) {
   // Early Exit: No Plugins
   if (!plugins) return;
+  
   // Show terminal message: Start
-  if (log) Logger.header(`\nCustom User Plugins: ${log}`);
+  if (log) Logger.persist.header(`\nCustom User Plugins: ${log}${utils.countDisplay(plugins)}`);
 
   // Execute each user plugin
-  // NOTE: Using recursion instead of forEach so plugins run synchronously
-  // in case the plugin itself has async processes which the next is dependent on
+  // NOTE: Using recursion instead of `util.promiseAll` since we want
+  // each plugin to run schronously. Their internal plugin code can 
+  // await async code, though.
   await recursePlugins(0); 
   async function recursePlugins(index) {
     // Stop recursion if no more plugins
     if (!plugins[index]) return;
+
+    // Show terminal message: Plugin Start
+    if (log) Logger.info(plugins[index]);
+
     // Use user-defined plugin dir path (main.js) or use default location
     const pluginsPath = pluginPath || 'plugins';
     // Get plugin file source
@@ -46,7 +52,7 @@ async function customPlugins({data = {}, file, log, plugins}) {
       await recursePlugins(index+=1);
     }
     catch (err) {
-      utils.customError(err);
+      utils.customError(err, 'custom-plugins.js');
       return;
     }
   };

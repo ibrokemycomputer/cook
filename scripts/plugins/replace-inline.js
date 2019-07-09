@@ -60,12 +60,15 @@ function replaceLink({links, file}) {
     // Early Exit: Not a relative path to CSS file, likely external
     if (href.charAt(0) !== '/') return;
     replacePath = `${distPath}${href}`;
-    replaceSrc = fs.readFileSync(replacePath, 'utf-8');
-    // Add new `<style>` tag and then delete `<link>`
-    el.insertAdjacentHTML('beforebegin', `<style>${replaceSrc}</style>`);
-    el.remove();
-    // Show terminal message
-    Logger.success(`/${file.path} - Replaced link[${utils.attr.inline}]: ${ chalk.green(href) }`);
+    try {
+      replaceSrc = fs.readFileSync(replacePath, 'utf-8');
+      // Add new `<style>` tag and then delete `<link>`
+      el.insertAdjacentHTML('beforebegin', `<style>${replaceSrc}</style>`);
+      el.remove();
+      // Show terminal message
+      Logger.success(`/${file.path} - Replaced link[${utils.attr.inline}]: ${ chalk.green(href) }`);
+    }
+    catch (err) { Logger.error(`Could not find ${replaceSrc}, skipping this include`) }
   });
 }
 

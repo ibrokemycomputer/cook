@@ -2,12 +2,19 @@
 // ----------------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const fs = require('fs');
-const { execSync } = require('child_process');
+const fs = require('fs').promises;
+const cliCursor = require('cli-cursor');
+const cliSpinners = require('cli-spinners');
+const v8 = require('v8');
+const Logger = require('./logger.js');
+const Spinner = require('./spinner.js');
+const Timer = require('./timer.js');
+const {execSync} = require('child_process');
+const {lstatSync,readdirSync} = require('fs-extra');
 
 // JSDOM
 const jsdomLib = require('jsdom');
-const { JSDOM } = jsdomLib;
+const {JSDOM} = jsdomLib;
 
 // Config
 const {activeAttr,convertPageToDirectory,includeAttr,inlineAttr,parentActiveAttr} = require(`${cwd}/config/main.js`);
@@ -42,8 +49,11 @@ const replaceExternalLinkProtocolDefaults = ['cdn', 'www'];
 module.exports = {
   attr,
   convertExternalLinks,
+  countDisplay,
   customError,
   customKill,
+  deepClone,
+  fakePromise,
   getFileName,
   getFileParts,
   getPaths,
@@ -54,6 +64,7 @@ module.exports = {
   jsdom,
   promiseAll,
   replaceExternalLinkProtocolDefaults,
+  runFileLoop,
   setSrc,
   testSrc,
   validatePageChange,
@@ -75,14 +86,24 @@ function convertExternalLinks(source) {
 }
 
 /**
- * @description Custom terminal error stack-trace message
- * @param {Object} e - The error event
- * @param {String} label - The console section label
+ * @description Return array length string formatted for display or empty string if array is empty
+ * @param {Array} arrayToCount - The array to find it length for display
+ * @example Returns either `(5)` or '' depending on the length of the test array (assuming length was `5`)
  * @private
  */ 
-function customError(e, label = 'Error') {
+function countDisplay(arrayToCount) {
+  return arrayToCount.length ? ' (' + arrayToCount.length + ')' : '';
+}
+
+/**
+ * @description Custom terminal error stack-trace message
+ * @param {Object} e - The error event
+ * @param {String} [label] - The console section label
+ * @param {String} [post] - 'Post' message after call stack
+ * @private
+ */ 
+function customError(e, label = 'Error', post) {
   const errorStackFileLine = e.stack.split('\n')[1];
-  if (!errorStackFileLine) return e;
   const splitColon = errorStackFileLine.split(':');
   const lineNumber = splitColon[splitColon.length - 2];
   const fileName = splitColon[splitColon.length - 3];
@@ -96,6 +117,9 @@ function customError(e, label = 'Error') {
     if (filePart) console.log(chalk.grey(`${filePart.trim()} (line ${lineNumber})`));
     if (filePath) console.log(chalk.grey(filePath));
   }
+  if (post) console.log(post);
+
+  customKill('Hard stop to prevent deploy')
 }
 
 /**
@@ -109,6 +133,28 @@ function customError(e, label = 'Error') {
  */ 
 function customKill(msg) {
   execSync(`echo ${chalk.red(msg)} && killall -9 node`, {stdio: 'inherit'});
+}
+
+/**
+ * @description Deep clone an object using the experimental, but native Serialization API in Node.js (https://nodejs.org/api/all.html#v8_serialization_api)
+ * @param {String} obj - The object to clone
+ * @return {Object}
+ * @private
+ */ 
+function deepClone(obj) {
+  return v8.deserialize(v8.serialize(obj));
+}
+
+/**
+ * @description Create a test promise delay
+ * @param {Number} ms - The delay, in milliseconds
+ * @param {Boolean} throwError - Fake a rejected promise
+ * @return {Object}
+ * @private
+ */ 
+function fakePromise(ms, throwError) {
+  if (!throwError) return new Promise(resolve => setTimeout(resolve, ms));
+  else return Promise.reject('Could not resolve this')
 }
 
 /**
@@ -156,11 +202,11 @@ function getFileParts(path) {
 function getPaths(originalPath, path, ignorePattern, paths = []) {
   try {
     // Obtain a list of files and folders
-    const files = fs.readdirSync(path);
+    const files = readdirSync(path);
     files.forEach(file => {
       const currentFilePath = `${path}/${file}`;
       // Get the file descriptor
-      const fd = fs.lstatSync(currentFilePath);
+      const fd = lstatSync(currentFilePath);
       // If path is ignored, either by default or user-entered (`excludePaths` in /config/main.js),
       // We won't do anything to it once it is copied to /dist
       // This is handy for `/dist/assets/scripts/vendor`, for example, since that is code likely already minified
@@ -183,9 +229,8 @@ function getPaths(originalPath, path, ignorePattern, paths = []) {
       }
     });
     return paths;
-  } catch (error) {
-    throw error;
-  }
+  } 
+  catch (err) { customError(err, `getPaths`); }
 }
 
 /**
@@ -275,12 +320,63 @@ function newFrag({src}) {
 }
 
 /**
- * @description 
+ * @description Custom `Promise.all` that sends information to a callback fn when each promise is returned
+ * @param {Array} arr - The items to promisify and run method against
+ * @param {Function} method - The method to run against each promise item
+ * @param {Function} [cb] - Optional callback that passes returned infomation from the method for each promise that returns
+ * @param {Boolean} [pageLabel] - Optionally pass in the file or method name as a label for display in terminal if the promise rejects
  * @returns {Object}
  */
-function promiseAll(arr, method) {
+function promiseAll(arr, method, cb, pageLabel) {
   const promises = arr.map(method);
+  if (cb) {
+    const length = promises.length;
+    for (const promise of promises) {
+      promise
+        .then(data => cb({length, data}))
+        .catch(err => customKill(`killed: ${err}${ ` in ${pageLabel}` || '' }`));
+    }
+  }
   return Promise.all(promises);
+}
+
+/**
+ * @description Run method against target file asynchronously
+ * @param {Array} files - The array of file paths to modify
+ * @param {Function} method - The method to run against each file
+ * @param {Object} loading - The `ora` npm package loading spinner (update in place on screen for each file)
+ */
+async function runFileLoop(files, method) {
+  // Show terminal message: Start
+  Logger.persist.header(`\nModify Files`);
+  // Start spinner message
+  const loading = new Spinner();
+  loading.start(`Fetching allowed files`);
+  loading.total = files.length;
+
+  // Start timer
+  const timer = new Timer();
+  timer.start();
+
+  await recurseFiles(0);
+  async function recurseFiles(index) {
+    const file = files[index];
+    await method(file);
+    index += 1;
+    loading.updateAsPercentage(file, index, loading.total, true);
+    if (index < loading.total) await recurseFiles(index);
+  }
+
+  // NOTE: There is no noticeable speed difference from the below over the recusion method above
+  // NOTE: However, the logging shows each page message cleaner in the above
+  // await promiseAll(files, method, data => {
+  //   loading.count += 1;
+  //   // When each promise returns, update terminal percentage message
+  //   loading.updateAsPercentage(data.data, loading.count, loading.total, true);
+  // });
+  
+  // End timer
+  loading.stop(`Files Modified ${chalk.grey(`(${loading.total})`)} ${timer.end()}`);
 }
 
 /**
