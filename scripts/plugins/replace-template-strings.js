@@ -9,6 +9,9 @@ const cwd = process.cwd();
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
+// USER 'MAIN.JS' CONFIG
+const {enableTemplateStringReplace} = require(`${cwd}/config/main.js`);
+
 
 // DEFINE
 // -----------------------------
@@ -22,6 +25,9 @@ const Logger = require(`../utils/logger.js`);
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
 function replaceTemplateStrings({file, data, allowType, disallowType}) {
+  // Early Exit: User disabled feature
+  if (enableTemplateStringReplace === false) return;
+
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
