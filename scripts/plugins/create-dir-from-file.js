@@ -65,7 +65,7 @@ async function createDirFromFile({files, allowType, disallowType, excludePaths =
   );
   
   // End: Loading terminal message
-  loading.stop(`Directories Created ${chalk.grey(`(${loading.count})`)} ${timer.end()}`);
+  loading.stop(`Directories Created (${loading.count}) ${timer.end()}`);
 }
 
 
