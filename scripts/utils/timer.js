@@ -25,10 +25,10 @@ class Timer {
   }
 
   split() {
-    const isFirstSplit = this.timeSplit > 0;
-    const prevTime = isFirstSplit ? this.timeStart : this.timeSplit;
+    const prevTime = !this.timeSplit ? this.timeStart : this.timeSplit;
     this.timeSplit = new Date().getTime();
-    return (this.timeSplit - prevTime) / 1000;
+    const diff = (this.timeSplit - prevTime) / 1000;
+    return chalk.grey(`| ${diff}s`);
   }
 
   end() {
