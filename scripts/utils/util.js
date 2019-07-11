@@ -65,6 +65,7 @@ module.exports = {
   promiseAll,
   replaceExternalLinkProtocolDefaults,
   runFileLoop,
+  sanitize,
   setSrc,
   testSrc,
   validatePageChange,
@@ -376,6 +377,20 @@ async function runFileLoop(files, method) {
   
   // End timer
   loading.stop(`Files Modified (${loading.total}) ${timer.end()}`);
+}
+
+/**
+ * @description Sanitize string for display. Replace `<` and `>` with entities, etc.
+ * @param {String} str - The string to sanitize
+ * @returs {String}
+ * @private
+ */
+function sanitize(str) {
+  const strRaw = str;
+  const strReplaceOpen = strRaw.replace(/</g, '&lt;');
+  const strReplaceClose = strReplaceOpen.replace(/>/g, '&gt;');
+  const strFormatted = strReplaceClose;
+  return strFormatted;
 }
 
 /**
