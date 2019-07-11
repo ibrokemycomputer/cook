@@ -3,7 +3,6 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs').promises;
-const ora = require('ora');
 const Logger = require(`./utils/logger.js`);
 const Spinner = require(`./utils/spinner.js`);
 // const {generatePages} = require('./utils/performance');

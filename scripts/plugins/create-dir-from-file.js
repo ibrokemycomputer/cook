@@ -9,7 +9,6 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
-const ora = require('ora');
 // const rimraf = require('rimraf');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);

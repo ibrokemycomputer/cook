@@ -344,7 +344,6 @@ function promiseAll(arr, method, cb, pageLabel) {
  * @description Run method against target file asynchronously
  * @param {Array} files - The array of file paths to modify
  * @param {Function} method - The method to run against each file
- * @param {Object} loading - The `ora` npm package loading spinner (update in place on screen for each file)
  */
 async function runFileLoop(files, method) {
   // Show terminal message: Start
