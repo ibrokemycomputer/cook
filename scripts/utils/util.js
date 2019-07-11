@@ -67,7 +67,6 @@ module.exports = {
   replaceExternalLinkProtocolDefaults,
   runFileLoop,
   setSrc,
-  testSrc,
   validatePageChange,
 };
 
@@ -403,17 +402,6 @@ function setSrc({dom}) {
   else if (isHeadFrag) return document.head.innerHTML;
   // Is a full DOM .html page w/ doctype, <html>, etc. Just return the whole thing
   else return dom.serialize();
-}
-
-/**
- * @description Output source for only a few pages for testing
- * @example utils.testSrc({file});
- * @param {Object} opts - The arguments object 
- * @property {Object} file - The current file's info (ext,name,path,src)
- */
-function testSrc({file}) {
-  const test = ['dist/assets/scripts/plugin/pf-webp/pf-webp.js','dist/index.html','dist/includes/global-head.html','dist/assets/css/main.css'];
-  if (test.indexOf(file.path) > -1) console.log(`\n----------------------\n\n${chalk.blue(file.path)}\n\n${file.src}\n`);
 }
 
 /**
