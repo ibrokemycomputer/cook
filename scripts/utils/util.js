@@ -53,6 +53,7 @@ module.exports = {
   customError,
   customKill,
   deepClone,
+  encodeTag,
   fakePromise,
   getFileName,
   getFileParts,
@@ -65,7 +66,6 @@ module.exports = {
   promiseAll,
   replaceExternalLinkProtocolDefaults,
   runFileLoop,
-  sanitize,
   setSrc,
   testSrc,
   validatePageChange,
@@ -144,6 +144,16 @@ function customKill(msg) {
  */ 
 function deepClone(obj) {
   return v8.deserialize(v8.serialize(obj));
+}
+
+/**
+ * @description Sanitize DOM tag for display. Replace `<` with `&lt;`
+ * @param {String} str - The string to sanitize
+ * @returs {String}
+ * @private
+ */
+function encodeTag(str) {
+  return str.replace(/</g, '&lt;');
 }
 
 /**
@@ -377,20 +387,6 @@ async function runFileLoop(files, method) {
   
   // End timer
   loading.stop(`Files Modified (${loading.total}) ${timer.end()}`);
-}
-
-/**
- * @description Sanitize string for display. Replace `<` and `>` with entities, etc.
- * @param {String} str - The string to sanitize
- * @returs {String}
- * @private
- */
-function sanitize(str) {
-  const strRaw = str;
-  const strReplaceOpen = strRaw.replace(/</g, '&lt;');
-  const strReplaceClose = strReplaceOpen.replace(/>/g, '&gt;');
-  const strFormatted = strReplaceClose;
-  return strFormatted;
 }
 
 /**
