@@ -5,9 +5,9 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
+// const cwd = process.cwd();
 const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+// const Logger = require(`../utils/logger.js`);
 
 
 // DEFINE
@@ -26,26 +26,33 @@ function replaceTemplateStrings({file, data, allowType, disallowType}) {
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
 
-  // Get data keys and values
-  const dataKeys = Object.keys(data);
-  const dataValues = dataKeys.map(i => data[i]);
-  
-  /* 
-   * Essentially we pass in the HTML source string, wrap it in backticks, then create a 
-   * 'Function' that returns the source back with the template string rendered  
-   */ 
-  try {
-    const compile = (content, $ = '$') => Function($, 'return `' + content + '`;');
-    const compiled = compile(file.src, dataKeys)(...dataValues);
-    // Store the new file source
-    file.src = compiled;
+  // REPLACE STRING VARIABLES WITH MATCHING DATA
+  // Find all template string variables, and replace them with their matching data value from `/config/data.js`
 
-    // Show terminal message: Done
-    Logger.success(`/${file.path} - Replaced template strings`);
-  } catch (err) {
-    Logger.error(`${file.path} - Error replacing template strings: 
-    ${err}`);
-  }
+  // If a matching value was not found, we return an empty string ('') so that the variable doesn't show on screen.
+  // If you want the variable to show instead, replace the '' with the variable `match` as the OR value below (... || '') -> (... || match)
+
+  // NOTE: Why do we use `obj[`${src[offset+2]}${g}`]` instead of `obj[g]`?
+  // ---
+  // Normally, if you use a regex to find all `${...}` in the src (`/\${(.*)}/g`), the 'g' property in the `.replace()` method will be that match.
+  // However, this will find these cases as well: `${{...}}`, which is the literal $ and then a Vue-style variable.
+  // So instead of leaving `${{...}}` in the DOM (so that Vue can replace on the client during page render),
+  // it would try and replace with a looked up value, not find one, and write an empty string instead,
+  // So you would get `}` written to the screen instead of `${{...}}` since it would match `${{...}`
+  // Therefore, we needed to add a negation to the regex, namely `[^{]`, which excludes matches with 2x { after a $.
+  // So now `${...}` matches, but `${{...}}` doesn't. Great!
+  // Unfortunately, the native string's `.replace()` method separates capture groups from the pattern match :(
+  // (You can read about it here: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_function_as_a_parameter)
+  // So inside the replace's 2nd-parameter function, `g` would be the matched variable template, but missing the first character after the first `{`.
+  // For example, if the matched variable was `${matchedVar}` (which is the `match` argument), then `g` will be `atchedVar` instead of `matchedVar`.
+  // So when you do a look up to the data object, no matched value will be returned.
+  // Therefore, we need to add that missing character back.
+  // Fortunately, the `.replace()` method provides the index offset where the match occurred, and the full source string.
+  // So we find the missing character by adjusting the offset by 2 (`offset+2`) 
+  // and then applying it back to `g` to get the correct variable lookup (why 2? Because we need to go past the starting `${`)
+  // ---
+  const replaceTemplateVars = (str,obj) => str.replace(/\${[^{](.*?)}/g, (match,g,offset,src) => obj[`${src[offset+2]}${g}`] || '');
+  file.src = replaceTemplateVars(file.src, data);
 }
 
 // EXPORT
