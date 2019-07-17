@@ -29,9 +29,6 @@ function replaceTemplateStrings({file, data, allowType, disallowType}) {
   // REPLACE STRING VARIABLES WITH MATCHING DATA
   // Find all template string variables, and replace them with their matching data value from `/config/data.js`
 
-  // If a matching value was not found, we return an empty string ('') so that the variable doesn't show on screen.
-  // If you want the variable to show instead, replace the '' with the variable `match` as the OR value below (... || '') -> (... || match)
-
   // NOTE: Why do we use `obj[`${src[offset+2]}${g}`]` instead of `obj[g]`?
   // ---
   // Normally, if you use a regex to find all `${...}` in the src (`/\${(.*)}/g`), the 'g' property in the `.replace()` method will be that match.
@@ -51,7 +48,7 @@ function replaceTemplateStrings({file, data, allowType, disallowType}) {
   // So we find the missing character by adjusting the offset by 2 (`offset+2`) 
   // and then applying it back to `g` to get the correct variable lookup (why 2? Because we need to go past the starting `${`)
   // ---
-  const replaceTemplateVars = (str,obj) => str.replace(/\${[^{](.*?)}/g, (match,g,offset,src) => obj[`${src[offset+2]}${g}`] || '');
+  const replaceTemplateVars = (str,obj) => str.replace(/\${[^{](.*?)}/g, (match,g,offset,src) => obj[`${src[offset+2]}${g}`] || match);
   file.src = replaceTemplateVars(file.src, data);
 }
 
