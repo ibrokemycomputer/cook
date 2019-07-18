@@ -109,7 +109,7 @@ class Build {
       await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
       
       // PLUGIN: Replace `[data-include]` in files
-      replaceIncludes({file, allowType: ['.html']});
+      await replaceIncludes({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
       replaceInline({file, allowType: ['.html']});

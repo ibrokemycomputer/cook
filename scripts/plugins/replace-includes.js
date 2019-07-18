@@ -7,7 +7,7 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
@@ -25,13 +25,13 @@ const {convertPageToDirectory,distPath,srcPath} = require(`${cwd}/config/main.js
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
-function replaceIncludes({file, allowType, disallowType}) {
+async function replaceIncludes({file, allowType, disallowType}) {
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
   
-  let formattedIncludePath, hasInclude, includePath;
-  let dom = utils.jsdom.dom({src: file.src});
+  // Store string source as traversable DOM
+  let dom = utils.jsdom.dom({src: file.src});  
   // Allow `[include]` or `[data-include]` by default
   const includeSelector = utils.getSelector(utils.attr.include);
   const includeItems = dom.window.document.querySelectorAll(includeSelector);
@@ -39,42 +39,9 @@ function replaceIncludes({file, allowType, disallowType}) {
   // Early Exit: No includes
   if (!includeItems) return;
 
-  // Loop through each found include call
-  includeItems.forEach(el => {
-    // If attribute found and it has a path
-    hasInclude = hasAttribute(el, utils.attr.include);
-    if (hasInclude && hasInclude.path && hasInclude.path.length) {
-      try {
-        // Get full system path to the include file
-        includePath = formattedIncludePath = path.resolve(`${distPath}/${hasInclude.path}`);
-        // Format the path before doing a file lookup, in case the user added a malformed path
-        const hasExtension = !!includePath.match(/.html/g);
-        // Case: User added `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
-        // --> Do nothing
-        // Case: User omitted `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
-        // --> convert `/footer` to `/footer.html`)
-        if (convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}.html`;
-        // Case: User added `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
-        // --> convert `/footer.html` to `/footer/index.html`)
-        if (!convertPageToDirectory.disabled && hasExtension) formattedIncludePath = includePath.replace('.html', '/index.html');
-        // Case: User omitted `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
-        // --> convert `/footer` to `/footer/index.html`)
-        if (!convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}/index.html`;
-        // Get contents of target include file
-        const content = fs.readFileSync(formattedIncludePath, 'utf-8');
-        // Add included content in DOM before placeholder element
-        el.insertAdjacentHTML('beforebegin', content);
-        // Remove placeholder element from DOM (`<div include="/includes/xxxx"></div>`)
-        el.remove();
-        // Show terminal message
-        Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(formattedIncludePath.split(distPath)[1]) }`);
-      }
-      catch (err) {
-        utils.customError(err, `replace-includes.js`);
-      }
-    }
-  });
-
+  // Loop through each found include call and replace with source
+  await utils.promiseAll([...includeItems], el => (replaceInclude)(el, file));
+  
   // Store updated file source
   file.src = utils.setSrc({dom});
 
@@ -88,8 +55,94 @@ function replaceIncludes({file, allowType, disallowType}) {
   // if (newSubIncludes.length) replaceIncludes({file, allowType, disallowType});
 }
 
+
+// REPLACE INDIV. INCLUDE
+// -----------------------------
+/**
+ * @description Replace include with corresponding source code
+ * @param {Object} el - The current include to replace
+ * @private
+ */
+async function replaceInclude(el) {
+  // If attribute found and it has a path
+  const hasInclude = hasAttribute(el, utils.attr.include);
+  if (hasInclude && hasInclude.path && hasInclude.path.length) {
+    try {
+      // Get full system path to the include file
+      const includePath = path.resolve(`${distPath}/${hasInclude.path}`);
+      let formattedIncludePath = includePath;
+      // Format the path before doing a file lookup, in case the user added a malformed path
+      const hasExtension = !!includePath.match(/.html/g);
+      // Case: User added `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
+      // --> Do nothing
+      // Case: User omitted `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
+      // --> convert `/footer` to `/footer.html`)
+      if (convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}.html`;
+      // Case: User added `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
+      // --> convert `/footer.html` to `/footer/index.html`)
+      if (!convertPageToDirectory.disabled && hasExtension) formattedIncludePath = includePath.replace('.html', '/index.html');
+      // Case: User omitted `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
+      // --> convert `/footer` to `/footer/index.html`)
+      if (!convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}/index.html`;
+      // Get contents of target include file
+      const content = await fs.readFile(formattedIncludePath, 'utf-8');
+      // Add included content in DOM before placeholder element
+      el.insertAdjacentHTML('afterend', content);
+      // Add any attributes that were on the include element to the first replaced DOM element (that is valid)
+      // A 'valid' element is a non- style/script/template etc. element. See the check in the method for the full list
+      // NOTE: If an include has multiple 'top-level' elements, they will be applied to the first one
+      addAttributesToReplacedDOM(el);
+      // Remove placeholder element from DOM (`<div include="/includes/xxxx"></div>`)
+      el.remove();
+      // Show terminal message
+      Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(formattedIncludePath.split(distPath)[1]) }`);
+    }
+    catch (err) {
+      utils.customError(err, `replace-includes.js`);
+    }
+  }
+}
+
+
 // HELPER METHODS
 // -----------------------------
+
+/**
+ * @description If the include element had other attributes added, apply them to the first replaced, valid element found.
+ * @example The replaced source has a `<style>` tag followed by 2 sibling `<div>` tags. We add the attributes to the first `<div>`
+ * @param {Object} el - The `[data-include]` or `[include]` element that is replaced
+ * @private
+ */
+function addAttributesToReplacedDOM(el) {
+  const targetEl = getValidNextElement(el);
+  // Early Exit: No valid element found
+  if (!targetEl) return;
+  // Loop through each attribute on the include element
+  for (let i=0; i<el.attributes.length; i++) {
+    const name = el.attributes[i].name;
+    const value = el.attributes[i].value;
+    const isValidAttr = utils.attr.include.indexOf(name) === -1;
+    if (isValidAttr) targetEl.setAttribute(name, value);
+  }
+}
+
+/**
+ * @description Get the next valid element sibling (excludes style/script/etc. elements)
+ * @param {Object} el - The `[data-include]` or `[include]` element that is replaced
+ * @private
+ */
+function getValidNextElement(el) {
+  const invalidTypes = ['DESCRIPTION','LINK','META','SCRIPT','STYLE','TEMPLATE','TITLE'];
+  let nextEl = el.nextElementSibling, targetEl;
+  while (nextEl) {
+    // If a valid element type, store it
+    const isValid = invalidTypes.indexOf(nextEl.nodeName) === -1;
+    if (isValid) targetEl = nextEl;
+    // Stop the loop if valid element found, or go to the next one
+    nextEl = targetEl ? false : nextEl.nextElementSibling;
+  }
+  return targetEl;
+}
 
 /**
  * @description Match target attribute(s) against target DOM element
