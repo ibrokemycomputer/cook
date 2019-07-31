@@ -46,8 +46,7 @@ class Spinner {
   }
 
   stop(label) {
-    process.stdout.clearLine();
-    process.stdout.cursorTo(0);
+    readline.cursorTo(process.stdout, 0);
     Logger.persist.success(label);
     clearInterval(this.interval);
     cliCursor.show();
