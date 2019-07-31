@@ -1,7 +1,7 @@
 // REQUIRE
 // ----------------------------------
 const chalk = require('chalk');
-const deepClone = require('lodash/clonedeep');
+const deepClone = require('lodash.clonedeep');
 
 // DEFINE
 // ----------------------------------
