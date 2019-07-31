@@ -8,6 +8,7 @@
 const chalk = require('chalk');
 const cliCursor = require('cli-cursor');
 const cliSpinners = require('cli-spinners');
+const readline = require('readline');
 const Logger = require('./logger.js');
 
 
@@ -24,8 +25,7 @@ class Spinner {
   }
   
   setDisplay() {
-    process.stdout.clearLine();
-    process.stdout.cursorTo(0);
+    readline.cursorTo(process.stdout, 0);
     process.stdout.write(`${chalk[this.color](cliSpinners.dots.frames[this.spinCurr])} ${this.label}`);
   }
 
