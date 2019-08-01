@@ -25,7 +25,7 @@ class Spinner {
   }
   
   setDisplay() {
-    readline.cursorTo(process.stdout, 0);
+    this.clearLine();
     process.stdout.write(`${chalk[this.color](cliSpinners.dots.frames[this.spinCurr])} ${this.label}`);
   }
 
@@ -46,7 +46,7 @@ class Spinner {
   }
 
   stop(label) {
-    readline.cursorTo(process.stdout, 0);
+    this.clearLine();
     Logger.persist.success(label);
     clearInterval(this.interval);
     cliCursor.show();
@@ -74,6 +74,20 @@ class Spinner {
     if (reverse) outputLabel = `${percentageLabel} ${userLabel}`;
     // Update spinner
     this.update(outputLabel, currentColor);
+  }
+
+
+  // HELPER METHODS
+  // ----------------------------------
+
+  clearLine() {
+    if (process && process.stdout && process.stdout.clearLine) {
+      process.stdout.clearLine();
+      process.stdout.cursorTo(0);
+    }
+    // Run this for Gitlab deploy logging
+    // Note: Not using this for local dev as the line doesn't clear correctly
+    else readline.cursorTo(process.stdout, 0);
   }
 }
 
