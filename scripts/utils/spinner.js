@@ -16,6 +16,7 @@ const Logger = require('./logger.js');
 // ----------------------------------
 class Spinner {
   constructor() {
+    this.allowNewLine = false;
     this.color = 'green';
     this.delay = cliSpinners.dots.interval;
     this.interval = null;
@@ -26,7 +27,9 @@ class Spinner {
   
   setDisplay() {
     this.clearLine();
-    process.stdout.write(`${chalk[this.color](cliSpinners.dots.frames[this.spinCurr])} ${this.label}`);
+    // Add new line if Logging is enabled
+    const newLine = this.allowNewLine ? '\n' : '';
+    process.stdout.write(`${chalk[this.color](cliSpinners.dots.frames[this.spinCurr])} ${this.label}${newLine}`);
   }
 
   start(label, color) {
@@ -72,6 +75,8 @@ class Spinner {
     // Format label 
     // Note: by default it is user label then percentages but if `reverse` is TRUE, reverse the output order
     if (reverse) outputLabel = `${percentageLabel} ${userLabel}`;
+    // Set flag if build process is in 'logging enabled' mode (LOGGER=true)
+    this.allowNewLine = process.env.LOGGER;
     // Update spinner
     this.update(outputLabel, currentColor);
   }
