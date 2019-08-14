@@ -47,10 +47,11 @@ class Spinner {
       this.spinCurr = this.spinCurr === this.spinMax - 1 ? 0 : this.spinCurr += 1;
     }, this.delay);
   }
-
-  stop(label) {
+  
+  stop(label, isError) {
     this.clearLine();
-    Logger.persist.success(label);
+    if (isError) Logger.persist.error(label);
+    else Logger.persist.success(label);
     clearInterval(this.interval);
     cliCursor.show();
   }
