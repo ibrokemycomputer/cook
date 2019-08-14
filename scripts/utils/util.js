@@ -54,6 +54,7 @@ module.exports = {
   customKill,
   deepClone,
   encodeTag,
+  escapeUrlString,
   fakePromise,
   getFileName,
   getFileParts,
@@ -154,6 +155,18 @@ function deepClone(obj) {
  */
 function encodeTag(str) {
   return str.replace(/</g, '&lt;');
+}
+
+/**
+ * @description Simple escape method that escapes literal characters
+ * @param {String} url - The string to escape
+ * @example `/` becomes `\/`
+ * @example `.` becomes `\.`
+ * @returns {String}
+ * @private
+ */
+function escapeUrlString(url) {
+  return url.replace(/\//g,'\\/').replace(/\./g,'\\.');
 }
 
 /**
