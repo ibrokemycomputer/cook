@@ -58,6 +58,7 @@ module.exports = {
   fakePromise,
   getFileName,
   getFileParts,
+  getFilePath,
   getPaths,
   getSelector,
   hasExtension,
@@ -213,6 +214,18 @@ function getFileParts(path) {
   const fileNameIfIndex = !convertPageToDirectory.disabled && fileName === 'index.html' ? fileSplit[fileSplit.length - 2] : undefined;
   const fileNameSplit = fileName.split('.');
   return { name: fileNameSplit[0], nameIfIndex: fileNameIfIndex, ext: fileNameSplit[1] };
+}
+
+/**
+ * @description Return path to file without the file name and extension
+ * @param {path} - The file path (/path/to/file.ext)
+ * @return {String}
+ * @private
+ */ 
+function getFilePath(path) {
+  const pathSplit = path.split('/');
+  const filename = pathSplit.splice(pathSplit.length - 1, 1);
+  return pathSplit.join('/');
 }
 
 /**
