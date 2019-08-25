@@ -426,9 +426,10 @@ function setSrc({dom}) {
     const XMLSerializer = new JSDOM('').window.XMLSerializer;
     const domString = new XMLSerializer().serializeToString(dom)
     const formattedDomString = domString
-      // Replace added xml attributes that don't render correctly
       .replace(/ xmlns="http:\/\/www.w3.org\/1999\/xhtml"/gmi, '')
-      .replace(/ns1:href/gmi, 'href');
+      // `ns1:href` added to `<use>` svgs, however the # increases per instance in the page
+      // So we need to find each one and replace it - the `ns(\d)*?` finds `ns1`, `ns2`, etc.
+      .replace(/ns(\d)*?:(?:href)/gmi, 'href');
     return formattedDomString;
   }
   // Full HTML document
