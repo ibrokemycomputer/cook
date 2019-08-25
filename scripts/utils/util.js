@@ -353,7 +353,7 @@ function newJSDOM({src,options}) {
  * @property {String} fileSource - The source to make a traversable document from
  * @returns {Object}
  */
-function newFrag({src}) {
+function newFrag(src) {
   return JSDOM.fragment(src);
 }
 
