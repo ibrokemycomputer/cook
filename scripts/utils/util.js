@@ -421,15 +421,25 @@ async function runFileLoop(files, method) {
  * @param {*} param0 
  */
 function setSrc({dom}) {
-  const document = dom.window.document;
-  const isBodyFrag = document.head.children.length < 1;
-  const isHeadFrag = document.body.children.length < 1;
-  // Is a fragment .html file (likely include) that <head> is empty
-  if (isBodyFrag) return document.body.innerHTML;
-  // Is a fragment .html file (likely include) that <body> is empty
-  else if (isHeadFrag) return document.head.innerHTML;
-  // Is a full DOM .html page w/ doctype, <html>, etc. Just return the whole thing
-  else return dom.serialize();
+  // Fragment
+  if (!dom.window) {
+    const XMLSerializer = new JSDOM('').window.XMLSerializer;
+    const domString = new XMLSerializer().serializeToString(dom)
+    const formattedDomString = domString.replace(/ xmlns="http:\/\/www.w3.org\/1999\/xhtml"/gmi, '');
+    return formattedDomString;
+  }
+  // Full HTML document
+  else {
+    const document = dom.window.document;
+    const isBodyFrag = document.head.children.length < 1;
+    const isHeadFrag = document.body.children.length < 1;
+    // Is a fragment .html file (likely include) that <head> is empty
+    if (isBodyFrag) return document.body.innerHTML;
+    // Is a fragment .html file (likely include) that <body> is empty
+    else if (isHeadFrag) return document.head.innerHTML;
+    // Is a full DOM .html page w/ doctype, <html>, etc. Just return the whole thing
+    else return dom.serialize();
+  }
 }
 
 /**
