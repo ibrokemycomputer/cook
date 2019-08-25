@@ -425,7 +425,10 @@ function setSrc({dom}) {
   if (!dom.window) {
     const XMLSerializer = new JSDOM('').window.XMLSerializer;
     const domString = new XMLSerializer().serializeToString(dom)
-    const formattedDomString = domString.replace(/ xmlns="http:\/\/www.w3.org\/1999\/xhtml"/gmi, '');
+    const formattedDomString = domString
+      // Replace added xml attributes that don't render correctly
+      .replace(/ xmlns="http:\/\/www.w3.org\/1999\/xhtml"/gmi, '')
+      .replace(/ns1:href/gmi, 'href');
     return formattedDomString;
   }
   // Full HTML document
