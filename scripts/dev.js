@@ -61,7 +61,7 @@ watchFiles.forEach(path => {
     // this changed file.
     process.env.DEV_CHANGED_PAGE = file;
     // Run the build process
-    execSync('NODE_ENV=development LOGGER=true npm run build', {stdio: 'inherit'});
+    execSync('NODE_ENV=development npm run build', {stdio: 'inherit'});
     // Reload changed page
     const fileDist = file.replace(`${srcPath}/`, `${distPath}/`);
     browserSync.reload(fileDist);
