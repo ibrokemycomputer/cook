@@ -10,7 +10,7 @@ const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // CONFIG
-const {distPath,sitemapUrl,srcPath} = require(`${cwd}/config/main.js`);
+const {distPath,sitemap,srcPath} = require(`${cwd}/config/main.js`);
 
 
 // BUILD XML
@@ -24,15 +24,18 @@ const {distPath,sitemapUrl,srcPath} = require(`${cwd}/config/main.js`);
  * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
-function generateSitemap(sitemapUrl) {
+function generateSitemap() {
   // Early Exit: No user-defined site domain in `/config/main.js`
-  if (!sitemapUrl || !sitemapUrl.length) return;
+  if (!sitemap || !sitemap.url || !sitemap.url.length) return;
   
   try {
     // Get directory and .html file paths from `/dist`
     let files = fs.readdirSync(distPath);
     // Format file paths for XML
     files = formatFilesForXML(files);
+    // Filter out unwanted entry paths
+    files = excludeFiles(files);
+    files.forEach(f => console.log(f))
     // Build XML source
     let xmlSrc = buildXML(files);
     // Create `sitemap.xml` and write source to it
@@ -62,7 +65,7 @@ function buildXML(files) {
     // Add entry
     xml += `
       <url>
-        <loc>${sitemapUrl}${f}</loc>
+        <loc>${sitemap.url}${f}</loc>
         <lastmod>${date}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>${priority}</priority>
@@ -72,6 +75,34 @@ function buildXML(files) {
   xml += '</urlset>';
   // Return src
   return xml;
+}
+
+/**
+ * @description Exclude a file path from the sitemap if it matches a
+ * default or user-provided regex exclusion.
+ * @param {Array} files - Array of file paths to be used for creating the sitemap
+ * @returns {Array}
+ * @private
+ */
+function excludeFiles(files) {
+  // Default path regexes: Any `/assets`, `/includes`, and root-level `404.html` files
+  const defaultExcludePaths = [/^\/assets/, /^\/includes/, /^\/404.html/];
+  // User defined regexes from `/config/main.js`
+  const userExcludePaths = sitemap && sitemap.excludePaths || [];
+  // Combine the default and user regexes
+  const excludePaths = [...defaultExcludePaths, ...userExcludePaths];
+  // Filter out unwanted paths
+  return files.filter(f => {
+    // Allow by default
+    let state = true;
+    // For each exclude path regex
+    excludePaths.forEach(path => {
+      // If the file entry path matches, change state to FALSE, so it gets filtered out
+      if (f.match(path)) state = false;
+    });
+    // Return current state to filter in or out the entry
+    return state;
+  });
 }
 
 /**

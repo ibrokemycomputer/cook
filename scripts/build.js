@@ -40,7 +40,6 @@ const {
   // optimizeImages, 
   // pagePerformanceTest,
   plugins = {before: [], default: [], after: []}, 
-  sitemapUrl,
 } = require(`${cwd}/config/main.js`);
 
 // USER 'DATA.JS' CONFIG
@@ -141,7 +140,7 @@ class Build {
     }
 
     // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
-    generateSitemap(sitemapUrl);
+    generateSitemap();
 
     // CUSTOM PLUGINS: Run custom user plugins after file loop
     await customPlugins({data, plugins: plugins.after, log: 'After' });
