@@ -35,7 +35,6 @@ function generateSitemap() {
     files = formatFilesForXML(files);
     // Filter out unwanted entry paths
     files = excludeFiles(files);
-    files.forEach(f => console.log(f))
     // Build XML source
     let xmlSrc = buildXML(files);
     // Create `sitemap.xml` and write source to it
