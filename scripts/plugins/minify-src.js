@@ -50,11 +50,11 @@ const minifyJsConfig = {};
  * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
  */
 function minifySrc({file, allowType, disallowType}) {
-
+  // Early Exit: User opted out (example, unminify in stage)
+  if (process.env.MINIFY === 'false') return;
   // Early Exit: File type not allowed
   const allowed = utils.isAllowedType({file,allowType,disallowType});
   if (!allowed) return;
-
   // Early Exit: Don't minify in development
   if (process.env.NODE_ENV === 'development') return;
 
