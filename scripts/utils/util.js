@@ -420,8 +420,8 @@ async function runFileLoop(files, method) {
  * @description Get the correct DOM nodes as a string
  * @param {*} param0 
  */
-function setSrc({dom}) {
-  // Fragment
+function setSrc({dom, path}) {
+  // Dom Fragment
   if (!dom.window) {
     const XMLSerializer = new JSDOM('').window.XMLSerializer;
     const domString = new XMLSerializer().serializeToString(dom)
@@ -433,16 +433,24 @@ function setSrc({dom}) {
     return formattedDomString;
   }
   // Full HTML document
+  // NOTE: This can either be a full .html page's source already with doctype and `<html>`,
+  // Or a non-document include fragment, with just standalone, fragment-like DOM markup.
   else {
+    // Get the JSDOM document object
     const document = dom.window.document;
-    const isBodyFrag = document.head.children.length < 1;
-    const isHeadFrag = document.body.children.length < 1;
-    // Is a fragment .html file (likely include) that <head> is empty
-    if (isBodyFrag) return document.body.innerHTML;
-    // Is a fragment .html file (likely include) that <body> is empty
-    else if (isHeadFrag) return document.head.innerHTML;
-    // Is a full DOM .html page w/ doctype, <html>, etc. Just return the whole thing
-    else return dom.serialize();
+    // Is the src a full HTML doc?
+    const isFullDoc = !!document.doctype;
+    
+    // If already a full DOM .html page w/ doctype, <html>, etc. Just return the whole source
+    if (isFullDoc) return dom.serialize();
+    // Otherwise, it is a fragment .html include file. However, depending on the # and position of markup elements within,
+    // it may return all content in just the `<head>` tag, the `<body>`, or a mixture.
+    // So we don't want to return the default `<html><head>...</head><body>...</body></html>`, 
+    // since it won't have the site's meta info, like `lang="en"`, char type, etc.
+    // ---
+    // Instead, we'll cherry-pick the content from those two elments and return them as one code block,
+    // since include files don't write to two places in the .html. They are just replaced in place.
+    else return `${document.head.innerHTML}${document.body.innerHTML}`;
   }
 }
 
