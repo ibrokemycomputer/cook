@@ -107,7 +107,10 @@ function countDisplay(arrayToCount) {
 function customError(e, label = 'Error', post) {
   if (!e.stack) return e;
   const errorStackFileLine = e.stack.split('\n')[1];
-  if (!errorStackFileLine) return e;
+  if (!errorStackFileLine) {
+    console.log(chalk.red(e));
+    return e;
+  }
   const splitColon = errorStackFileLine.split(':');
   const lineNumber = splitColon[splitColon.length - 2];
   const fileName = splitColon[splitColon.length - 3];
