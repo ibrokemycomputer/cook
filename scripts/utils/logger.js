@@ -12,7 +12,7 @@ let types = {
   header: (message, indent=0) => console.log(`${setIndent(indent)}${ chalk.grey.underline(message) }`),
   info: (message, indent=0) => console.log(`${setIndent(indent)}${ chalk.blue('info') }`, message),
   msg: (message, indent=0) => console.log(`${setIndent(indent)}${ message }`),
-  skip: (message, indent=0) => console.log(`${setIndent(indent)}${chalk.green('✓ success')} ${message} ${chalk.grey(' (skipped) | 0s')}`),
+  skip: (message, indent=0) => console.log(`${setIndent(indent)}${chalk.green('✓ success')} ${message} ${chalk.grey('(skipped) | 0s')}`),
   success: (message, indent=0) => console.log(`${setIndent(indent)}${ chalk.green('✓ success')}`, message),
   system: (message, indent=0) => console.log(`${setIndent(indent)}${ chalk.blue(message) }`),
   warning: (message, indent=0) => console.log(`${setIndent(indent)}${ chalk.yellow('warn') }`, message),
