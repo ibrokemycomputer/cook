@@ -69,6 +69,7 @@ module.exports = {
   replaceExternalLinkProtocolDefaults,
   runFileLoop,
   setSrc,
+  skipped,
   validatePageChange,
 };
 
@@ -455,6 +456,16 @@ function setSrc({dom, path}) {
     // since include files don't write to two places in the .html. They are just replaced in place.
     else return `${document.head.innerHTML}${document.body.innerHTML}`;
   }
+}
+
+/**
+ * @description Return dynamic value or 'skipped' if test failed
+ * @param {Array} test - Array to test
+ * @param {String} [label] - Optional label instead of 'skipped' default
+ * @returns {String}
+ */
+function skipped(test, label = 'skipped') {
+  return test.length ? `(${test.length})` : chalk.grey('(skipped)');
 }
 
 /**
