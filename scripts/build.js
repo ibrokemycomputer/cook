@@ -93,6 +93,9 @@ class Build {
     // THE FILES LOOP
     await runFileLoop(files, fileLoop);
     async function fileLoop(fileName) {
+      // Early Exit: No file provided
+      if (!fileName) return;
+
       // Read and store the target file source.
       // We'll pass the string around between the plugins
       // then write back the updated/modified source to the file at the end
