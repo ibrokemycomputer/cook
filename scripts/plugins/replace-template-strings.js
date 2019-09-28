@@ -14,12 +14,11 @@ const utils = require(`../utils/util.js`);
 // -----------------------------
 /**
  * @description Converts file into a function and returns the rendered value as the file source
- * 
- * @param {Object} obj - Deconstructed object
- * @param {Object} obj.file - The current file info (name, extension, src, etc.)
- * @param {Object} obj.data - The user's data from the `data.js` config file, that users can add data to in their custom functions
- * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
- * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ * @param {Object} obj - Deconstructed options object
+ * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.)
+ * @property {Object} obj.data - The user's custom data from the `data.js` config file, so they can access it in their custom plugins
+ * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
+ * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
  */
 function replaceTemplateStrings({file, data, allowType, disallowType}) {
   // Early Exit: File type not allowed

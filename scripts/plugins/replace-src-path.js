@@ -21,10 +21,10 @@ const {distPath,srcPath} = require(`${cwd}/config/main.js`);
 /**
  * @description Replace `/src` paths for `NODE_ENV=development` since we do not inline `[inline]` elements locally,
  * so the `@import url()` path cannot start with `/src`, since that doesn't exist in the `/dist` folder
- * @param {Object} obj - Deconstructed object
- * @param {Object} obj.file - The current file info (name, extension, src, etc.)
- * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
- * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ * @param {Object} obj - Deconstructed options object
+ * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.)
+ * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
+ * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
  */
 function replaceSrcPathForDev({file, allowType, disallowType}) {
   // Early Exit: File type not allowed

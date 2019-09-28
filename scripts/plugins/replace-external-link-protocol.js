@@ -24,10 +24,10 @@ const {
 // -----------------------------
 /**
  * @description Replace non-protocol `www.` and `cdn.` link paths to avoid them being treated as relative links.
- * @param {Object} obj - Deconstructed object
- * @param {Object} obj.file - The current file info (name, extension, src, etc.)
- * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
- * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ * @param {Object} obj - Deconstructed options object
+ * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.)
+ * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
+ * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
  */
 function replaceMissingExternalLinkProtocol({file, allowType, disallowType}) {
   // Early Exit: User opted out of this plugin

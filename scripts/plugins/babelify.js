@@ -65,10 +65,10 @@ function addES5Markup(file) {
 
 /**
  * @description Compile JS files to ES5 and modifiy HTML script tag markup
- * @param {Object} Obj Deconstructed object
- * @param {Object} Obj.file File object
- * @param {Array} [Obj.allowType] Allowed files types
- * @param {Array} [Obj.disallowType] Disallowed files types
+ * @param {Object} obj - Deconstructed options object
+ * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.)
+ * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
+ * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
  */
 function babelify({file, allowType, disallowType}) {
   // Early Exit: File type not allowed

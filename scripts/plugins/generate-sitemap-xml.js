@@ -18,11 +18,8 @@ const {distPath,sitemap,srcPath} = require(`${cwd}/config/main.js`);
 // DEFINE
 // -----------------------------
 /**
- * @description Remove `/dist` and recreate it
- * @param {Object} obj - Deconstructed object
- * @param {Object} obj.file - The current file info (name, extension, src, etc.)
- * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
- * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
+ * @description Generate `sitemap.xml` for search engines from the finished site tree. 
+ * Is one of the last build processes since we want to get all new, dynamically-generated pages and their final path locations.
  */
 function generateSitemap() {
   // Early Exit: No user-defined site domain in `/config/main.js`

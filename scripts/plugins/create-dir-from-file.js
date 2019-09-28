@@ -27,11 +27,11 @@ const {getSrcConfig} = require('../utils/get-src');
 /**
  * @description Change all `xxxx.html` pages into `xxxx/index.html` versions so you
  * don't need to show extensions in the url
- * @param {Object} obj - Deconstructed object
- * @param {Object} obj.files - The site files' full /dist path
- * @param {Array} [obj.allowType] - Allowed files types (Opt-in)
- * @param {Array} [obj.disallowType] - Disallowed files types (Opt-out)
- * @param {Array} [obj.excludePaths] - Disallowed certain files (Opt-out)
+ * @param {Object} obj - Deconstructed options object
+ * @property {Object} obj.files - The current project files to affect
+ * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
+ * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
+ * @property {Array} [obj.excludePaths] - Disallowed certain files (Opt-out)
  */
 async function createDirFromFile({files, allowType, disallowType, excludePaths = []}) {
   // Early Exit: User opted out of this plugin

@@ -17,13 +17,15 @@ const {pluginPath} = require(`${cwd}/config/main.js`);
 // -----------------------------
 /**
  * @description Runs custom plugins defined outside of the build repo
- * @param {Object} obj - Deconstructed object
- * @param {Object} obj.file - The current file info (name, extension, src, etc.)
- * @param {Object} obj.plugins - The set of custom-user plugins to run for this instance.
+ * @param {Object} obj - Deconstructed options object
+ * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.) if a per-file plugin or all the allowed files if a `before` or `after` file loop plugin
+ * @property {Object} obj.data - The user's custom data from the `data.js` config file, so they can access it in their custom plugins
+ * @property {Boolean} obj.log - User opt-in to show the full logging in the terminal or not
+ * @property {Object} obj.plugins - The set of custom-user plugins to run for this instance.
  * These are pulled from the `main.js` config file, and are run in 3 build positions: `before`, `after` and during the files loop (`default`).
- * Note: You can export a plugin either as a function or ES6 class
+ * Note: The user must create and export the plugin as an ES6 class
  */
-async function customPlugins({data = {}, file, log, plugins}) {
+async function customPlugins({file, data = {}, log, plugins}) {
   // Early Exit: No Plugins
   if (!plugins) return;
   
