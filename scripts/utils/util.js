@@ -48,7 +48,6 @@ const replaceExternalLinkProtocolDefaults = ['cdn', 'www'];
 // ----------------------------------
 module.exports = {
   attr,
-  classWrap,
   convertExternalLinks,
   countDisplay,
   customError,
@@ -77,18 +76,6 @@ module.exports = {
 
 // METHODS AND CONSTS
 // ----------------------------------
-
-/**
- * @description Create wrapper around Class instantiation for convenience.
- * @example Only need to run `myPlugin({ ...opts })` instead of `new MyPlugin({ ...opts })`
- * @param {Object} opts - The arguments to pass to the Class 
- * @param {String} name - The name of the class to instantiate
- * @returns {Object}
- * @private
- */ 
-function classWrap(opts, name) {
-  return new global[name](opts);
-}
 
 /**
  * @description Find all href="www.xxxx.com" links and add http:// protocol. 
