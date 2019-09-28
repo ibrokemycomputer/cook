@@ -48,6 +48,7 @@ const replaceExternalLinkProtocolDefaults = ['cdn', 'www'];
 // ----------------------------------
 module.exports = {
   attr,
+  classWrap,
   convertExternalLinks,
   countDisplay,
   customError,
@@ -78,10 +79,22 @@ module.exports = {
 // ----------------------------------
 
 /**
+ * @description Create wrapper around Class instantiation for convenience.
+ * @example Only need to run `myPlugin({ ...opts })` instead of `new MyPlugin({ ...opts })`
+ * @param {Object} opts - The arguments to pass to the Class 
+ * @param {String} name - The name of the class to instantiate
+ * @returns {Object}
+ * @private
+ */ 
+function classWrap(opts, name) {
+  return new global[name](opts);
+}
+
+/**
  * @description Find all href="www.xxxx.com" links and add http:// protocol. 
  * By using the <base> tag, www links w/o a protocol are treated as internal (relative) links and will 404
  * @param {*} source 
- * @return {String}
+ * @returns {String}
  * @private
  */ 
 function convertExternalLinks(source) {
@@ -146,7 +159,7 @@ function customKill(msg) {
 /**
  * @description Deep clone an object using the experimental, but native Serialization API in Node.js (https://nodejs.org/api/all.html#v8_serialization_api)
  * @param {String} obj - The object to clone
- * @return {Object}
+ * @returns {Object}
  * @private
  */ 
 function deepClone(obj) {
@@ -179,7 +192,7 @@ function escapeUrlString(url) {
  * @description Create a test promise delay
  * @param {Number} ms - The delay, in milliseconds
  * @param {Boolean} throwError - Fake a rejected promise
- * @return {Object}
+ * @returns {Object}
  * @private
  */ 
 function fakePromise(ms, throwError) {
@@ -191,7 +204,7 @@ function fakePromise(ms, throwError) {
  * @description Return filename from path
  * @param {String} path - The file path (/path/to/file.ext)
  * @param {String} distPath - The path to the /dist directory
- * @return {String}
+ * @returns {String}
  * @private
  */ 
 function getFileName(path, distPath) {
@@ -207,7 +220,7 @@ function getFileName(path, distPath) {
 /**
  * @description Return object with filename `name` and `extension`
  * @param {path} - The file path (/path/to/file.ext)
- * @return {Object}
+ * @returns {Object}
  * @private
  */ 
 function getFileParts(path) {
@@ -223,7 +236,7 @@ function getFileParts(path) {
 /**
  * @description Return path to file without the file name and extension
  * @param {path} - The file path (/path/to/file.ext)
- * @return {String}
+ * @returns {String}
  * @private
  */ 
 function getFilePath(path) {
@@ -238,7 +251,7 @@ function getFilePath(path) {
  * @param {String} path - The new path to explore
  * @param {RegExp} ignorePattern - A regex pattern to ignore certain files and folders
  * @param {Array} paths - The on going list of paths found
- * @return {Array} - An array of paths
+ * @returns {Array} - An array of paths
  * @private
  */
 function getPaths(originalPath, path, ignorePattern, paths = []) {
