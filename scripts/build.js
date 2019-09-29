@@ -15,7 +15,6 @@ const {runFileLoop} = utils;
 // PLUGINS
 // -----------------------------
 // const babelify = require('./plugins/babelify');
-const bundle = require('./plugins/bundle');
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
@@ -131,9 +130,6 @@ class Build {
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});
-
-      // PLUGIN: Bundle grouped CSS or JS
-      bundle({file, data, allowType: ['.html']});
 
       // PLUGIN: Minify Source
       minifySrc({file});
