@@ -15,14 +15,14 @@ const {runFileLoop} = utils;
 // PLUGINS
 // -----------------------------
 // const babelify = require('./plugins/babelify');
-// const cleanupDist = require('./plugins/cleanup-dist');
+const bundle = require('./plugins/bundle');
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
 const customPlugins = require('./plugins/custom-plugins');
 const generateSitemap = require('./plugins/generate-sitemap-xml');
 const minifySrc = require('./plugins/minify-src');
-const replaceIncludes = require('./plugins/replace-includes.js');
+const replaceInclude = require('./plugins/replace-include.js');
 const replaceInline = require('./plugins/replace-inline.js');
 const replaceMissingExternalLinkProtocol = require('./plugins/replace-external-link-protocol.js');
 const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
@@ -38,7 +38,6 @@ const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
 const {
   // optimizeSVGs, 
   // optimizeImages, 
-  // pagePerformanceTest,
   plugins = {before: [], default: [], after: []}, 
 } = require(`${cwd}/config/main.js`);
 
@@ -47,6 +46,12 @@ const {
 // so that additional data can be added to it from plugins instead of needing 
 // to manually define everything from the start in `/config/data.js`
 const data = require(`${cwd}/config/data.js`);
+
+// INIT BUNDLE.JS
+// Init bundle plugin by creating temporary array for the build process.
+// This will serve as a running cache so we don't bundle already-bundled files
+// in subsequent pages in the file loop.
+data.bundle = [];
 
 
 // BUILD
@@ -63,16 +68,13 @@ class Build {
     console.log(`${ chalk.blue('\n[Build]') } ${ chalk.blue.bold('`npm run build`') }`);
 
     // PLUGIN: Create `/dist` if not already made
-    createDist();
+    await createDist();
 
     // PLUGIN: Copy `/src` to `/dist`
-    copySrc();
+    await copySrc();
 
     // CUSTOM PLUGINS: Run custom user plugins before file loop
     await customPlugins({data, plugins: plugins.before, log: 'Before' });
-    
-    // PERFORMANCE: Generate X number of pages to test performance
-    // if (pagePerformanceTest > 0) generatePages(pagePerformanceTest); 
 
     // THE IMAGES LOOP
     // getSrcImages(images => {
@@ -93,9 +95,6 @@ class Build {
     // THE FILES LOOP
     await runFileLoop(files, fileLoop);
     async function fileLoop(fileName) {
-      // Early Exit: No file provided
-      if (!fileName) return;
-
       // Read and store the target file source.
       // We'll pass the string around between the plugins
       // then write back the updated/modified source to the file at the end
@@ -111,10 +110,10 @@ class Build {
       await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
       
       // PLUGIN: Replace `[data-include]` in files
-      await replaceIncludes({file, allowType: ['.html']});
+      await replaceInclude({file, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
-      replaceInline({file, allowType: ['.html']});
+      await replaceInline({file, allowType: ['.html']});
 
       // PLUGIN: Replace <img> tags with <picture> elements
       // if (optimizeImages) replaceImgTags({file, allowType: ['.html']});
@@ -132,6 +131,9 @@ class Build {
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});
+
+      // PLUGIN: Bundle grouped CSS or JS
+      bundle({file, data, allowType: ['.html']});
 
       // PLUGIN: Minify Source
       minifySrc({file});
