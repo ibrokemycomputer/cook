@@ -16,24 +16,37 @@ const {distPath} = require(`${cwd}/config/main.js`);
 
 // DEFINE
 // -----------------------------
-function createDist() {
-  // Early Exit: Do not create `/dist` if only a single page was updated
+class CreateDist {
+  constructor() {}
+
+  // INIT
+  // -----------------------------
   // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
-  if (process.env.DEV_CHANGED_PAGE) return;
+  async init() {
+    // Early Exit: Do not create `/dist` if only a single page was updated
+    if (process.env.DEV_CHANGED_PAGE) return;
 
-  // Show terminal message: Start
-  Logger.persist.header(`\nCreate /${distPath}`);
+    // Show terminal message: Start
+    Logger.persist.header(`\nCreate /${distPath}`);
 
-  // Remove `/dist` (fails silently if not there as that is the intended result)
-  rimraf.sync(distPath);
-  // Make fresh '/dist' folder
-  fs.mkdirSync(distPath);
+    // Remove `/dist` (fails silently if not there as that is the intended result)
+    rimraf.sync(distPath);
+    // Make fresh '/dist' folder
+    await fs.mkdir(distPath);
 
-  // Show terminal message: Done
-  Logger.persist.success (`/${distPath} created`);
+    // Show terminal message: Done
+    Logger.persist.success (`/${distPath} created`);
+  }
+  
+  // EXPORT WRAPPER
+  // -----------------------------
+  // Export function wrapper instead of class for `build.js` simplicity
+  static async export(opts) {
+    return new CreateDist(opts).init();
+  }
 }
 
 
 // EXPORT
 // -----------------------------
-module.exports = createDist;
+module.exports = CreateDist.export;
