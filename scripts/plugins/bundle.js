@@ -11,6 +11,8 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
+const minifyCss = require('clean-css');
+const minifyEs = require('uglify-es');
 const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
@@ -41,8 +43,6 @@ class Bundle {
 
     // Use user-defined paths or set defaults for where to create the bundled files
     this.bundleDistPath = bundle.distPath || `assets/bundle`;
-
-    // this.test = this.file.path === 'dist/includes/global-body/index.html';
   }
 
   // BUILD METHODS
@@ -81,9 +81,9 @@ class Bundle {
     if (!links.length && !scripts.length) return;
 
     // REPLACE INLINE CSS
-    this.bundleSrc(links, 'css');
+    this.groupSrcAndInsertBundle(links, 'css');
     // REPLACE INLINE SCRIPT
-    this.bundleSrc(scripts, 'js');
+    this.groupSrcAndInsertBundle(scripts, 'js');
 
     // Store updated file source
     file.src = utils.setSrc({dom});
@@ -110,6 +110,12 @@ class Bundle {
   // PRIMARY PROCESS METHODS
   // -----------------------------
 
+  /**
+   * @description Get all referenced files' source and create the new bundled file.
+   * @param {Object} targets - The CSS or JS object that contains each found bundle group.
+   * @param {String} type - This method needs to know if we're working on a `<link>` or `<script>` tag (combined method)
+   * @private
+   */
   async buildBundles(targets, type) {
     const groupKeys = Object.keys(targets);
     // Early Exit: No bundle groups found of the given type
@@ -128,7 +134,7 @@ class Bundle {
       // For each file path, fetch it's source
       // NOTE: This is a synchronous process b/c the code order needs to be maintained
       for (let path of paths) {
-        bundledSrc += await this.getSrc(path);
+        bundledSrc += await this.getSrc(path, type);
       }
       // Create file in designated 'dist' directory, either defined by the user in `/config/main.js`,
       // or via the default location (something like `/dist/assets/bundle`)
@@ -136,7 +142,17 @@ class Bundle {
       await fs.writeFile(`${distPath}/${this.bundleDistPath}/bundle-${key}.${type}`, bundledSrc, 'utf-8');
     }
 
-  async bundleSrc(targets, type) {
+  /**
+   * @description Find all `<link>` or `<script>` tags that are bundled together. 
+   * Store the group name and the file paths, then remove the 'old' DOM element references.
+   * Finally, insert a new element that will reference the bundle. 
+   * ---
+   * NOTE: linked bundle file created further in the build process.
+   * @param {Array} targets - Array of `<link>` or `<script>` tags to group and then remove.
+   * @param {String} type - This method needs to know if we're working on a `<link>` or `<script>` tag (combined method)
+   * @private
+   */
+  async groupSrcAndInsertBundle(targets, type) {
     const elType = type === 'js' ? 'script' : 'link';
     const pathAttr = type === 'js' ? 'src' : 'href';
     const bundleType = this.data.bundle[type];
@@ -145,12 +161,20 @@ class Bundle {
     // Loop through each found target and add the source path 
     // to an appropriate group array.
     targets.forEach(target => {
+      // Before storing, add a flag for whether we should minify the source or not
+      // For example, if bundling vendor code, it is likely already minified, so we don't want to do it again.
+      const minify = !target.hasAttribute('no-minify') && !target.hasAttribute('data-no-minify');
+      // Get the element's group by finding the `[bundle]` attribute value
       const group = this.getGroup(target);
       // If the group hasn't been added to the collection, add it
       if (!bundleType[group]) bundleType[group] = [];
       const bundleGroup = bundleType[group];
       // If the path hasn't been added to the group yet, add it
-      if (bundleGroup.indexOf(target[pathAttr]) === -1) bundleGroup.push(target[pathAttr]);
+      const path = target[pathAttr];
+      // Map just the paths so we can use indexOf on a flattened string-array, instead of the normal object-array
+      const pathsMap = bundleGroup.map(g => g.path);
+      // Add the file entry if it doesn't already exist (this way if the same file added on multiple pages, we only add once)
+      if (pathsMap.indexOf(path) === -1) bundleGroup.push({ path, minify });
       // Add index of this element in its group as attribute. Will be used in next step
       if (!counters[group]) counters[group] = 0;
       target.setAttribute('group-index', counters[group]);
@@ -195,7 +219,8 @@ class Bundle {
     return groupRaw.replace(/ /g, '-').toLowerCase();
   }
 
-  async getSrc(path) {
+  async getSrc(entry, type) {
+    const { path, minify } = entry;
     // Early Exit: No path for some reason
     if (!path) return '';
     // Get the file's source content
@@ -204,13 +229,26 @@ class Bundle {
       const pathSplit = path.split('localhost');
       const pathFormatted = pathSplit[pathSplit.length - 1];
       // Get path starting from the 'src' directory. Example: `/src/assets/plugin/myplugin.js`
-      const src = await fs.readFile(`${srcPath}/${pathFormatted}`, 'utf-8');
+      let src = await fs.readFile(`${srcPath}/${pathFormatted}`, 'utf-8');
+      // If the source is allowed to by minified, minify it
+      if (minify) src = type === 'js' ? this.minJs(src) : this.minCss(src);
       // Return the found source
       return src;
     }
     catch (err) {
       utils.customKill(err, `Error fetching the source from: ${path}`);
     }
+  }
+
+  minJs(src) {
+    const config = {};
+    return minifyEs.minify(src, config).code;
+  }
+
+  minCss(src) {
+    const config = { inline: ['none'] };
+    // Minify source
+    return new minifyCss(config).minify(src).styles;
   }
     
 
