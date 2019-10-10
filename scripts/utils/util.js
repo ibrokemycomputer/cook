@@ -2,7 +2,7 @@
 // ----------------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const fs = require('fs').promises;
+const fs = require('fs-extra');
 const cliCursor = require('cli-cursor');
 const cliSpinners = require('cli-spinners');
 const v8 = require('v8');
@@ -50,6 +50,7 @@ module.exports = {
   attr,
   convertExternalLinks,
   countDisplay,
+  createDirectory,
   customError,
   customKill,
   deepClone,
@@ -96,6 +97,20 @@ function convertExternalLinks(source) {
  */ 
 function countDisplay(arrayToCount) {
   return arrayToCount.length ? ' (' + arrayToCount.length + ')' : '';
+}
+
+/**
+ * @description Create directory hierarchy, if it doesn't already exist
+ * @param {String} path - The path to directory to create
+ * @private
+ */
+async function createDirectory(path) {
+  try {
+    await fs.mkdirp(path);
+  }
+  catch (err) {
+    customKill(err, `Error creating directory(s) in: ${path}`);
+  }
 }
 
 /**

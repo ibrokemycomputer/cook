@@ -15,6 +15,7 @@ const {runFileLoop} = utils;
 // PLUGINS
 // -----------------------------
 // const babelify = require('./plugins/babelify');
+const {bundleAdd, bundleBuild} = require('./plugins/bundle');
 const copySrc = require('./plugins/copy-src');
 const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
@@ -50,7 +51,10 @@ const data = require(`${cwd}/config/data.js`);
 // Init bundle plugin by creating temporary array for the build process.
 // This will serve as a running cache so we don't bundle already-bundled files
 // in subsequent pages in the file loop.
-data.bundle = [];
+data.bundle = {
+  css: {}, 
+  js: {}, 
+};
 
 
 // BUILD
@@ -131,6 +135,9 @@ class Build {
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});
 
+      // PLUGIN: Compile grouped CSS or JS for bundling
+      bundleAdd({file, data, allowType: ['.html']});
+
       // PLUGIN: Minify Source
       minifySrc({file});
       
@@ -142,6 +149,9 @@ class Build {
 
     // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
     generateSitemap();
+
+    // PLUGIN: Build and create bundled file
+    await bundleBuild({data});
 
     // CUSTOM PLUGINS: Run custom user plugins after file loop
     await customPlugins({data, plugins: plugins.after, log: 'After' });
