@@ -94,6 +94,12 @@ async function getSrcFiles() {
     files = utils.getPaths(distPath, distPath, excludedPaths);
     // Get only the allowed files by extension (.css, .html)
     files = files.filter(fileName => utils.isExtension(fileName, allowedExt));
+    // Move known include files to the front of the array, so they are ideally built first 
+    // before being replaced in other page files.
+    files = files.sort((a,b) => {
+      if (a.includes('/includes')) return -1;
+      return 1;
+    });
   }
   // Run tasks on matched files
   return files;
