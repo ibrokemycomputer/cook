@@ -226,6 +226,7 @@ function getFileName(path, distPath) {
  * @private
  */ 
 function getFileParts(path) {
+  if (!path) return;
   const fileSplit = path.split('/');
   const fileName = fileSplit[fileSplit.length - 1];
   // If last split item is `index.html`, store its parent directory (if option to convert pages to directories is enabled)
