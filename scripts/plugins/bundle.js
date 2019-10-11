@@ -42,7 +42,7 @@ class Bundle {
     this.excludePaths = excludePaths;
 
     // Use user-defined paths or set defaults for where to create the bundled files
-    this.bundleDistPath = bundle.distPath || `assets/bundle`;
+    this.bundleDistPath = bundle && bundle.distPath || `assets/bundle`;
   }
 
   // BUILD METHODS
