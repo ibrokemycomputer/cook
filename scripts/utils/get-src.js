@@ -36,6 +36,8 @@ module.exports = {
  * @private
  */
 async function getSrcConfig({fileName, excludeSrc = false }) {
+  // Early Exit: No file name given
+  if (!fileName) return;
   // Init obj
   let file = {};
   

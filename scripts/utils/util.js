@@ -329,6 +329,9 @@ function hasExtension(str) {
  * @private
  */
 function isAllowedType({file,allowType,disallowType}) {
+  // Early Exit: No file name given
+  if (!file) return;
+  // Destructure properties
   let {ext} = file;
   // Early Exit: No valid extension
   if (!ext) return false;
@@ -404,6 +407,8 @@ function promiseAll(arr, method, cb, pageLabel) {
  * @param {Function} method - The method to run against each file
  */
 async function runFileLoop(files, method) {
+  // Early Exit: No allowed files given
+  if (!files || !files.length) return;
   // Show terminal message: Start
   Logger.persist.header(`\nModify Files`);
   // Start spinner message
