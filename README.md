@@ -80,6 +80,8 @@ but by default it should be 3000: `localhost:3000`
 
 &nbsp;
 
+---
+
 ## Environment Flags
 
 Some site processes do not need to run every time locally, or they only need to run during deployment, etc. To accommodate this, some features are gated behind Node environment variables.
@@ -97,6 +99,8 @@ _[Note]:_ There is a third env. value, `NODE_ENV=stage`, that has its own run sc
 Out-of-the-box, no internal build processes use this, but you are welcome to use it in your own custom-user build plugins.
 
 &nbsp;
+
+---
 
 ## Build Process
 
