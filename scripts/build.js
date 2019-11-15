@@ -107,7 +107,7 @@ class Build {
       await customPlugins({file, data, plugins: plugins.default});
       
       // PLUGIN: Render all ES6 template strings 
-      replaceTemplateStrings({file, data, allowType: ['.html']});
+      replaceTemplateStrings({file, data, allowType: ['.html', '.json']});
 
       // PLUGIN: Add missing `http://` to user-added external link `[href]` values (`[href="www.xxxx.com"]`)
       await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
@@ -139,7 +139,7 @@ class Build {
       bundleAdd({file, data, allowType: ['.html']});
 
       // PLUGIN: Minify Source
-      minifySrc({file});
+      minifySrc({file, disallowType: ['.json']});
       
       // Write new, modified source back to the file
       fs.writeFile(file.path, file.src);

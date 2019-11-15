@@ -12,7 +12,7 @@ const utils = require(`./util.js`);
 const Logger = require(`./logger.js`);
 
 // Config
-const {excludePaths,distPath,srcPath} = require(`${cwd}/config/main.js`);
+const {includePaths,excludePaths,distPath,srcPath} = require(`${cwd}/config/main.js`);
 
 
 // EXPORT
@@ -85,6 +85,8 @@ async function getSrcFiles() {
   // FULL BUILD
   // Otherwise, find all allowed files, loop through them, and run the build plugins on them
   else {
+    // Allowed page types
+    const userAllowedPaths = validatePaths(includePaths);
     // Disallowed page types
     // /dist/assets/scripts/vendor - Skip 3rd-party vendor files
     const defaultExcludedPaths = [new RegExp(`${distPath}\/assets\/scripts\/vendor`)];
@@ -95,7 +97,7 @@ async function getSrcFiles() {
     // Get files in `/dist`
     files = utils.getPaths(distPath, distPath, excludedPaths);
     // Get only the allowed files by extension (.css, .html)
-    files = files.filter(fileName => utils.isExtension(fileName, allowedExt));
+    files = files.filter(fileName => manualAllow(fileName, userAllowedPaths) || utils.isExtension(fileName, allowedExt));
     // Move known include files to the front of the array, so they are ideally built first 
     // before being replaced in other page files.
     files = files.sort((a,b) => {
@@ -153,6 +155,21 @@ function removeCommentTags(src) {
 
 // HELPER METHODS
 // -----------------------------
+
+/**
+ * @description Validate user entry and return in array if valid
+ * @param {*} paths - User entry to validate. If a valid, single regex, add to array and return
+ * @returns {Array}
+ * @private
+ */
+function manualAllow(fileName, allowedPaths) {
+  const allowedPathLen = allowedPaths && allowedPaths.length;
+  if (!allowedPathLen) return false;
+  for (let i=0; i<allowedPathLen; i++) {
+    if (allowedPaths[i].test(fileName)) return true;
+  }
+  return false;
+}
 
 /**
  * @description Validate user entry and return in array if valid
