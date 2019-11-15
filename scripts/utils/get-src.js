@@ -182,7 +182,7 @@ function validatePaths(paths) {
   // If user already added as array, just use that
   if (paths && paths.length) return paths;
   // If user gave a single regex, add it to an array
-  if (paths && typeof paths === 'object' && !paths.length) pathArr.push(paths);
+  if (paths && typeof paths === 'object' && !Array.isArray(paths) && !paths.length) pathArr.push(paths);
   // Return an array with either valid user regex(es) or an empty array
   return pathArr;
 }
