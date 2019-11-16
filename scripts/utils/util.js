@@ -155,7 +155,9 @@ function customError(e, label = 'Error', post) {
  * @private
  */ 
 function customKill(msg) {
-  execSync(`echo ${chalk.red(msg)} && killall -9 node`, {stdio: 'inherit'});
+  // Escape ( and )
+  const formattedMsg = msg.replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+  execSync(`echo ${chalk.red(formattedMsg)} && killall -9 node`, {stdio: 'inherit'});
 }
 
 /**
