@@ -156,8 +156,9 @@ function customError(e, label = 'Error', post) {
  */ 
 function customKill(msg) {
   // Escape ( and )
-  const formattedMsg = msg.replace(/\(/g, '\\(').replace(/\)/g, '\\)');
-  execSync(`echo ${chalk.red(formattedMsg)} && killall -9 node`, {stdio: 'inherit'});
+  const formatMsg = msg.replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+  // Display terminal message and kill process
+  execSync(`echo '' && echo ${chalk.red(formatMsg)} && killall -9 node`, {stdio: 'inherit'});
 }
 
 /**
