@@ -58,13 +58,15 @@ class GenerateSitemap {
   buildXML(files) {
     let date = this.formattedDate();
     let xml = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    // If `sitemap.url` has a trailing /, remove it to avoid potential double slashes (ex: https://domain.com//path/to/file)
+    const domain = sitemap.url[sitemap.url.length - 1] === '/' ? sitemap.url.slice(0, -1) : sitemap.url;
     files.forEach(f => {
       // Set homepage to higher priority
       const priority = f === '' ? '1.0' : '0.9';
       // Add entry
       xml += `
         <url>
-          <loc>${sitemap.url}${f}</loc>
+          <loc>${domain}${f}</loc>
           <lastmod>${date}</lastmod>
           <changefreq>monthly</changefreq>
           <priority>${priority}</priority>
