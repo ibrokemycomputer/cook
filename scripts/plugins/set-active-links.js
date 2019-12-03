@@ -9,7 +9,7 @@ const cwd = process.cwd();
 const utils = require(`../utils/util.js`);
 
 // Config
-const {distPath, activeLink} = require(`${cwd}/config/main.js`);
+const {distPath, activeLink} = require('../utils/config.js');
 
 
 // DEFINE

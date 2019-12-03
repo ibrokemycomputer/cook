@@ -13,7 +13,7 @@ const Logger = require(`../utils/logger.js`);
 // const { exec } = require('child_process');
 
 // Config
-const {distPath,srcPath} = require(`${cwd}/config/main.js`);
+const {distPath,srcPath} = require('../utils/config.js');
 
 // DEFINE
 // -----------------------------

@@ -15,7 +15,7 @@ const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // Config
-const {srcPath,distPath,minifyHtmlConfigCustom} = require(`${cwd}/config/main.js`);
+const {srcPath,distPath,minifyHtmlConfigCustom} = require('../utils/config.js');
 
 
 // DEFINE

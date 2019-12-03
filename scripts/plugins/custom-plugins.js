@@ -11,7 +11,7 @@ const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // Config
-const {pluginPath} = require(`${cwd}/config/main.js`);
+const {pluginPath} = require('../utils/config.js');
 
 // DEFINE
 // -----------------------------

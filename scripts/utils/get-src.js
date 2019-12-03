@@ -12,7 +12,7 @@ const utils = require(`./util.js`);
 const Logger = require(`./logger.js`);
 
 // Config
-const {includePaths,excludePaths,distPath,srcPath} = require(`${cwd}/config/main.js`);
+const {includePaths,excludePaths,distPath,srcPath} = require('./config.js');
 
 
 // EXPORT

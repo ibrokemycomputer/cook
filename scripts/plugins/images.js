@@ -18,7 +18,7 @@ const imageminPngquant = require('imagemin-pngquant');
 
 // Config
 // Config
-const {customImgDir, customImgTypes, distPath, svgOpts} = require(`${cwd}/config/main.js`);
+const {customImgDir, customImgTypes, distPath, svgOpts} = require('../utils/config.js');
 
 // PLUGIN OPTIONS
 // -----------------------------

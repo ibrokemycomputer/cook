@@ -16,7 +16,7 @@ const Spinner = require(`${cwd}/node_modules/pathfinder/scripts/utils/spinner.js
 const Timer = require(`${cwd}/node_modules/pathfinder/scripts/utils/timer.js`);
 
 // USER 'MAIN.JS' CONFIG
-const {convertPageToDirectory,distPath} = require(`${cwd}/config/main.js`);
+const {convertPageToDirectory,distPath} = require('../utils/config.js');
 
 // GET SOURCE
 const {getSrcConfig} = require('../utils/get-src');

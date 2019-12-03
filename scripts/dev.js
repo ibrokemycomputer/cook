@@ -8,7 +8,7 @@ const packageJSON = require('../package.json');
 const { execSync } = require('child_process');
 
 // Config
-const {distPath,srcPath,startPath,watch,watchReplace} = require(`${cwd}/config/main.js`);
+const {distPath,srcPath,startPath,watch,watchReplace} = require('./utils/config.js');
 
 // FILES TO WATCH
 // The default file paths to watch

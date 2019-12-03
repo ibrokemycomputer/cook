@@ -16,8 +16,8 @@ const {lstatSync,readdirSync} = require('fs-extra');
 const jsdomLib = require('jsdom');
 const {JSDOM} = jsdomLib;
 
-// Config
-const {activeAttr,convertPageToDirectory,includeAttr,inlineAttr,parentActiveAttr} = require(`${cwd}/config/main.js`);
+// BUILD CONFIG
+const {activeLink,convertPageToDirectory,includeAttr,inlineAttr} = require('./config.js');
 
 
 // JSDOM CONFIG
@@ -31,12 +31,12 @@ const jsdom = {
 
 // STATIC CONFIG
 // ----------------------------------
-// Attribute values
+// Attribute values 
 const attr = {
   active: convertToKebab(activeLink && activeLink.activeState) || 'active',
   activeParent: convertToKebab(activeLink && activeLink.parentState) || 'active-parent',
-  include: includeAttr || ['include', 'data-include'],
-  inline: inlineAttr || ['inline', 'data-inline'],
+  include: includeAttr ? [includeAttr, `data-${includeAttr}`] : ['include', 'data-include'],
+  inline: inlineAttr ? [inlineAttr, `data-${inlineAttr}`] : ['inline', 'data-inline'],
 }
 
 // The default path types to target in `replace-external-link-protocol.js`

@@ -12,7 +12,7 @@ const babel = require('@babel/core');
 const fs = require('fs');
 
 // Config
-const {babelOpts} = require(`${cwd}/config/main.js`);
+const {babelOpts} = require('../utils/config.js');
 
 // Plugin options
 const opts = babelOpts || {

@@ -13,7 +13,7 @@ const utils = require(`../utils/util.js`);
 const Logger = require(`../utils/logger.js`);
 
 // Config
-const {distPath,srcPath} = require(`${cwd}/config/main.js`);
+const {distPath,srcPath} = require('../utils/config.js');
 
 
 // DEFINE

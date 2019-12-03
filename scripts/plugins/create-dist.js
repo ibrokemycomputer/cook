@@ -12,7 +12,7 @@ const rimraf = require('rimraf');
 const Logger = require(`../utils/logger.js`);
 
 // Config
-const {distPath} = require(`${cwd}/config/main.js`);
+const {distPath} = require('../utils/config.js');
 
 // DEFINE
 // -----------------------------

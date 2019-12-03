@@ -39,7 +39,7 @@ const {
   // optimizeSVGs, 
   // optimizeImages, 
   plugins = {before: [], default: [], after: []}, 
-} = require(`${cwd}/config/main.js`);
+} = require('./utils/config.js');
 
 // USER 'DATA.JS' CONFIG
 // Get user's data config object. We pass it into plugins (when necessary) 

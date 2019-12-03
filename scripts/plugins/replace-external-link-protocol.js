@@ -17,7 +17,7 @@ const Logger = require(`../utils/logger.js`);
 const {
   distPath,
   replaceExternalLinkProtocol = {enabled:true},
-} = require(`${cwd}/config/main.js`);
+} = require('../utils/config.js');
 
 
 // DEFINE
