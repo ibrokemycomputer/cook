@@ -9,7 +9,7 @@ const cwd = process.cwd();
 const utils = require(`../utils/util.js`);
 
 // Config
-const {distPath} = require(`${cwd}/config/main.js`);
+const {distPath, activeLink} = require(`${cwd}/config/main.js`);
 
 
 // DEFINE
@@ -58,7 +58,7 @@ class SetActiveLinks {
   // -----------------------------
 
   /**
-   * @description Set <a> tags to 'active' state if their [href] value file name matches the current file's name
+   * @description Set <a> tags to 'active' state if their [href] value file name matches the current file's name, or a parent-state iF an ancestor of the current page.
    * @param {Object} opts - The arguments object
    * @property {Object} file - The current file's props (ext,name,path,name)
    * @property {Object} link - The current <a> tag being evaluated
@@ -68,8 +68,36 @@ class SetActiveLinks {
     const currPath = utils.getFileName(file.path, distPath);
     const linkPath = utils.getFileName(link.href, distPath);
     const isParent = this.linkIsParent(file.path, linkPath);
-    if (linkPath === currPath) link.setAttribute(utils.attr.active,'');
-    else if (isParent) link.setAttribute(utils.attr.parentActive,'');
+    if (linkPath === currPath) this.setActiveLink(link);
+    else if (isParent) this.setParentActiveLink(link);
+  }
+
+  /**
+   * @description Add active state to link as attribute or class based on user preference.
+   * @param {Object} link - The DOM element to modify
+   * @private
+   */
+  setActiveLink(link) {
+    // Use user-defined states or a default
+    const isAttribute = activeLink && (activeLink.type === 'attr' || activeLink.type === 'attribute');
+    // If user specified using an attribute, set the state via attribute
+    if (isAttribute) link.setAttribute(`data-${utils.attr.active}`,'');
+    // Or set as a class value
+    else link.classList.add(utils.attr.active);
+  }
+
+  /**
+   * @description Add parent-active state to link as attribute or class based on user preference.
+   * @param {Object} link - The DOM element to modify
+   * @private
+   */
+  setParentActiveLink(link) {
+    // Use user-defined states or a default
+    const isAttribute = activeLink && (activeLink.type === 'attr' || activeLink.type === 'attribute');
+    // If user specified using an attribute, set the state via attribute
+    if (isAttribute) link.setAttribute(`data-${utils.attr.activeParent}`,'');
+    // Or set as a class value
+    else link.classList.add(utils.attr.activeParent);
   }
 
   /**

@@ -33,8 +33,8 @@ const jsdom = {
 // ----------------------------------
 // Attribute values
 const attr = {
-  active: activeAttr || 'data-active',
-  parentActive: parentActiveAttr || 'data-parent-active',
+  active: convertToKebab(activeLink && activeLink.activeState) || 'active',
+  activeParent: convertToKebab(activeLink && activeLink.parentState) || 'active-parent',
   include: includeAttr || ['include', 'data-include'],
   inline: inlineAttr || ['inline', 'data-inline'],
 }
@@ -87,6 +87,21 @@ module.exports = {
  */ 
 function convertExternalLinks(source) {
   return source.replace(/href="www/gi, 'href="http://www');
+}
+
+/**
+ * @description Convert string to `Kebab` case for use as attributes, class values, etc.
+ * @param {String} str - The string to convert to Kebab-case.
+ */
+function convertToKebab(str) {
+  // Early Exit: String is not defined
+  if (!str || typeof str !== 'string') return null;
+  // Convert all spaces to dashes
+  str = str.replace(/ /g, '-');
+  // Lowercase
+  str = str.toLowerCase();
+  // Return formatted string
+  return str;
 }
 
 /**
