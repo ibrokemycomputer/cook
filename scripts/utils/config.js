@@ -72,11 +72,11 @@ const defaultConfig = {
   // INCLUDE
   // -- Example: Include `/dist/manifest.json`, so template strings can be replaced.
   includePaths: [
-    '/dist\/manifest.webmanifest',
+    /dist\/manifest.webmanifest/,
   ],
   // -- Example: Exclude docs templates directory (/dist/assets/docs/)
   excludePaths: [
-    '/dist\/assets\/vendor',
+    /dist\/assets\/vendor/, 
   ],
   
   // Define the 'active' state for both links whose `[href]` value matches the current page,
