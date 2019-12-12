@@ -34,6 +34,9 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
 
+// INTERNAL BUILD DATA-STORE
+const store = {};
+
 // USER 'MAIN.JS' CONFIG
 const {
   // optimizeSVGs, 
@@ -113,7 +116,7 @@ class Build {
       await replaceMissingExternalLinkProtocol({file, allowType: ['.html']});
       
       // PLUGIN: Replace `[data-include]` in files
-      await replaceInclude({file, allowType: ['.html']});
+      await replaceInclude({file, store, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
       await replaceInline({file, allowType: ['.html']});

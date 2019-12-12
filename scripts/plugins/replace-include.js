@@ -22,16 +22,21 @@ const {convertPageToDirectory,distPath,srcPath} = require('../utils/config.js');
  * @description Replace include markers with corresponding code
  * @param {Object} obj - Deconstructed options object
  * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.)
+ * @property {Object} obj.store - The build process' own data store object we'll add the cached include-file content to
  * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
  * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
  */
 class ReplaceInclude {
-  constructor({file, allowType, disallowType, excludePaths = []}) {
+  constructor({file, store, allowType, disallowType, excludePaths = []}) {
     this.opts = {file, allowType, disallowType, excludePaths};
     this.file = file;
+    this.store = store;
     this.allowType = allowType;
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
+
+    // Add object to internal store for holding the cached include content
+    if (!this.store.cachedIncludes) this.store.cachedIncludes = {};
   }
 
   // INIT
@@ -51,8 +56,10 @@ class ReplaceInclude {
     // Early Exit: No includes
     if (!includeItems) return;
 
-    // Loop through each found include call and replace with source
-    await utils.promiseAll([...includeItems], el => (this.replaceInclude)(el, this.file));
+    // Loop through each found include call and replace with fetched file source
+    for (let item of includeItems) {
+      await this.replaceInclude(item);
+    }
     
     // Store updated file source
     this.file.src = utils.setSrc({dom});
@@ -73,6 +80,7 @@ class ReplaceInclude {
   /**
    * @description Replace include with corresponding source code
    * @param {Object} el - The current include to replace
+   * Caches includes' content that was already fetched, to speed up performance.
    * @private
    */
   async replaceInclude(el) {
@@ -80,24 +88,23 @@ class ReplaceInclude {
     const hasInclude = this.hasAttribute(el, utils.attr.include);
     if (hasInclude && hasInclude.path && hasInclude.path.length) {
       try {
+        // Init vars
+        let content;
+
         // Get full system path to the include file
         const includePath = path.resolve(`${distPath}/${hasInclude.path}`);
-        let formattedIncludePath = includePath;
-        // Format the path before doing a file lookup, in case the user added a malformed path
-        const hasExtension = !!includePath.match(/.html/g);
-        // Case: User added `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
-        // --> Do nothing
-        // Case: User omitted `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
-        // --> convert `/footer` to `/footer.html`)
-        if (convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}.html`;
-        // Case: User added `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
-        // --> convert `/footer.html` to `/footer/index.html`)
-        if (!convertPageToDirectory.disabled && hasExtension) formattedIncludePath = includePath.replace('.html', '/index.html');
-        // Case: User omitted `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
-        // --> convert `/footer` to `/footer/index.html`)
-        if (!convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${includePath}/index.html`;
-        // Get contents of target include file
-        const content = await fs.readFile(formattedIncludePath, 'utf-8');
+
+        // CHECK IF CACHED VERSION
+        // If this path was already looked up previously, use the stored-in-memory source instead of fetching and reading the file again.
+        // NOTE: Include file could be empty, resulting in an empty string (''). Since this is treated as falsey by default,
+        // we explicitly check for undefined or null (we need Null Coalescing Operator in Node now, cmon!)
+        const cachedTarget = this.store.cachedIncludes[includePath];
+        if ([undefined, null].indexOf(cachedTarget) === -1) content = cachedTarget;
+
+        // OTHERWISE, GET THE INCLUDE FILE'S CONTENT (`fs.readFile`)
+        else content = await this.fetchIncludeSrc(includePath);
+
+        // ADD CONTENT TO DOM
         // Add included content in DOM before placeholder element
         el.insertAdjacentHTML('afterend', content);
         // Add any attributes that were on the include element to the first replaced DOM element (that is valid)
@@ -107,11 +114,51 @@ class ReplaceInclude {
         // Remove placeholder element from DOM (`<div include="/includes/xxxx"></div>`)
         el.remove();
         // Show terminal message
-        Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(formattedIncludePath.split(distPath)[1]) }`);
+        Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(includePath.split(distPath)[1]) }`);
       }
       catch (err) {
         utils.customError(err, `replace-includes.js`);
       }
+    }
+  }
+
+
+  // PROCESS METHODS
+  // -----------------------------
+
+  /**
+   * @description Lookup the include file, by path, and get its source content.
+   * @param
+   * @returns {String}
+   * @private
+   */
+  async fetchIncludeSrc(path) {
+    // Store raw path
+    let formattedIncludePath = path;
+    // Format the path before doing a file lookup, in case the user added a malformed path
+    const hasExtension = !!path.match(/.html/g);
+    // Case: User added `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
+    // --> Do nothing
+    // Case: User omitted `.html` and `convertPageToDirectory` is DISABLED in `config/main.js`
+    // --> convert `/footer` to `/footer.html`)
+    if (convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${path}.html`;
+    // Case: User added `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
+    // --> convert `/footer.html` to `/footer/index.html`)
+    if (!convertPageToDirectory.disabled && hasExtension) formattedIncludePath = path.replace('.html', '/index.html');
+    // Case: User omitted `.html` and `convertPageToDirectory` is ENABLED in `config/main.js`
+    // --> convert `/footer` to `/footer/index.html`)
+    if (!convertPageToDirectory.disabled && !hasExtension) formattedIncludePath = `${path}/index.html`;
+    // Get and return content of target include file
+    try {
+      // Get source from file
+      const fetchedSrc = await fs.readFile(formattedIncludePath, 'utf-8');
+      // Add entry to cached object store
+      this.store.cachedIncludes[path] = fetchedSrc;
+      // Return source
+      return fetchedSrc;
+    }
+    catch (err) {
+      utils.customKill(`getIncludeSrc(): ${err}`);
     }
   }
 
