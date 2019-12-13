@@ -20,16 +20,21 @@ const {distPath} = require('../utils/config.js');
  * @description Replace external `<link>` and `<script>` calls inline
  * @param {Object} obj - Deconstructed options object
  * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.)
+ * @property {Object} obj.store - The build process' own data store object we'll add the cached inline-file content to
  * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
  * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
  */
 class ReplaceInline {
-  constructor({file, allowType, disallowType, excludePaths = []}) {
+  constructor({file, store, allowType, disallowType, excludePaths = []}) {
     this.opts = {file, allowType, disallowType, excludePaths};
     this.file = file;
+    this.store = store;
     this.allowType = allowType;
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
+
+    // Add object to internal store for holding the cached include content
+    if (!this.store.cachedInline) this.store.cachedInline = {};
   }
 
   // INIT
@@ -64,7 +69,7 @@ class ReplaceInline {
   }
 
 
-  // HELPER METHODS
+  // PROCESS METHODS
   // -----------------------------
 
   /**
@@ -96,26 +101,59 @@ class ReplaceInline {
    * @param {Object} scope - Reference to `this` context
    */
   async replaceTag(el,type) {
+    // Init vars
+    let content;
+
     // Format path-to-source
     // If running locally, it adds `https://localhost` to the path
     // So our early exit would fail without formatting
     const formatPath = this.formatPath(el[type]);
     // Early Exit: Not a relative path to CSS file, likely external
     if (formatPath.charAt(0) !== '/') return;
-    // Store path to file in dist directory
-    const replacePath = `${distPath}${formatPath}`;
-    const test = this.file.path === 'dist/demos/index.html'
-    try {
-      const replaceSrc = await fs.readFile(replacePath, 'utf-8');
-      // Add new `<style>` tag and then delete `<link>`
-      const tagType = type === 'href' ? 'style' : 'script';
-      el.insertAdjacentHTML('beforebegin', `<${tagType}>${replaceSrc}</${tagType}>`);
-      el.remove();
-      // Show terminal message
-      Logger.success(`/${this.file.path} - Replaced link[${utils.attr.inline}]: ${ chalk.green(formatPath) }`);
-    }
-    catch (err) { Logger.error(`Could not find ${replacePath}, skipping this include`) }
+
+    // CHECK IF CACHED VERSION
+    // If this path was already looked up previously, use the stored-in-memory source instead of fetching and reading the file again.
+    // NOTE: Include file could be empty, resulting in an empty string (''). Since this is treated as falsey by default,
+    // we explicitly check for undefined or null (we need Null Coalescing Operator in Node now, cmon!)
+    const cachedTarget = this.store.cachedInline[formatPath];
+    if ([undefined, null].indexOf(cachedTarget) === -1) content = cachedTarget;
+
+    // OTHERWISE, GET THE INCLUDE FILE'S CONTENT (`fs.readFile`)
+    else content = await this.fetchInlineSrc(formatPath);
+
+    // ADD CONTENT TO DOM
+    // Add new `<style>` tag and then delete `<link>`
+    const tagType = type === 'href' ? 'style' : 'script';
+    el.insertAdjacentHTML('beforebegin', `<${tagType}>${content}</${tagType}>`);
+    el.remove();
+    // Show terminal message
+    Logger.success(`/${this.file.path} - Replaced link[${utils.attr.inline}]: ${ chalk.green(formatPath) }`);
   }
+
+  /**
+   * @description Lookup the inline file, by path, and get its source content.
+   * @param
+   * @returns {String}
+   * @private
+   */
+  async fetchInlineSrc(path) {
+    const replacePath = `${distPath}${path}`;
+    try {
+      // Get source from file
+      const fetchedSrc = await fs.readFile(replacePath, 'utf-8');
+      // Add entry to cached object store
+      this.store.cachedInline[path] = fetchedSrc;
+      // Return source
+      return fetchedSrc;
+    }
+    catch (err) {
+      utils.customKill(`fetchInlineSrc(): ${err}`);
+    }
+  }
+
+
+  // HELPER METHODS
+  // -----------------------------
 
   /**
    * @description Remove localhost path when testing locally

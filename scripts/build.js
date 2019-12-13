@@ -119,7 +119,7 @@ class Build {
       await replaceInclude({file, store, allowType: ['.html']});
 
       // PLUGIN: Replace `[data-inline]` with external `<link>` and `<script>` tags
-      await replaceInline({file, allowType: ['.html']});
+      await replaceInline({file, store, allowType: ['.html']});
 
       // PLUGIN: Replace <img> tags with <picture> elements
       // if (optimizeImages) replaceImgTags({file, allowType: ['.html']});

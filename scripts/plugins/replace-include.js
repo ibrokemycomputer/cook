@@ -158,7 +158,7 @@ class ReplaceInclude {
       return fetchedSrc;
     }
     catch (err) {
-      utils.customKill(`getIncludeSrc(): ${err}`);
+      utils.customKill(`fetchInlineSrc(): ${err}`);
     }
   }
 
