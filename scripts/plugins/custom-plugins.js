@@ -7,11 +7,11 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
 
 // Config
-const {pluginPath} = require('../utils/config.js');
+const {pluginPath} = require('../utils/config/config.js');
 
 // DEFINE
 // -----------------------------

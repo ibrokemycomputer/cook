@@ -6,13 +6,13 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const Logger = require(`../utils/logger.js`);
-const utils = require(`../utils/util.js`);
+const Logger = require('../utils/logger/logger.js');
+const utils = require('../utils/util/util.js');
 const babel = require('@babel/core');
 const fs = require('fs');
 
 // Config
-const {babelOpts} = require('../utils/config.js');
+const {babelOpts} = require('../utils/config/config.js');
 
 // Plugin options
 const opts = babelOpts || {

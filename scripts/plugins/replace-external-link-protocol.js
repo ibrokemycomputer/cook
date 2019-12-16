@@ -10,14 +10,14 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
 
 // USER 'MAIN.JS' CONFIG
 const {
   distPath,
   replaceExternalLinkProtocol = {enabled:true},
-} = require('../utils/config.js');
+} = require('../utils/config/config.js');
 
 
 // DEFINE

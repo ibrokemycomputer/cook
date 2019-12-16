@@ -8,7 +8,7 @@
 const chalk = require('chalk');
 const cliCursor = require('cli-cursor');
 const cliSpinners = require('cli-spinners');
-const Logger = require('./logger.js');
+const Logger = require('../logger/logger.js');
 
 
 // DEFINE

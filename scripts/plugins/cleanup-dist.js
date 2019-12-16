@@ -7,10 +7,10 @@
 // -----------------------------
 const cwd = process.cwd();
 const rimraf = require('rimraf');
-const Logger = require(`../utils/logger.js`);
+const Logger = require('../utils/logger/logger.js');
 
 // Config
-const {distPath} = require('../utils/config.js');
+const {distPath} = require('../utils/config/config.js');
 
 
 // DEFINE

@@ -6,8 +6,8 @@
 // REQUIRE
 // -----------------------------
 // const cwd = process.cwd();
-const utils = require(`../utils/util.js`);
-// const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+// const Logger = require('../utils/logger/logger.js');
 
 
 // DEFINE

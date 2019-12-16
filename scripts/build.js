@@ -3,12 +3,12 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs').promises;
-const Logger = require(`./utils/logger.js`);
-const Spinner = require(`./utils/spinner.js`);
-// const {generatePages} = require('./utils/performance');
+const Logger = require('./utils/logger/logger.js');
+const Spinner = require('./utils/spinner/spinner.js');
+// const {generatePages} = require('./utils/performance/performance');
 
 // UTILS
-const utils = require(`./utils/util.js`);
+const utils = require('./utils/util/util.js');
 const {runFileLoop} = utils;
 
 
@@ -32,7 +32,7 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 // const {compressAndNextGen, optimizeSVG, replaceImgTags} = require('./plugins/images.js');
 
 // GET SOURCE
-const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src');
+const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src/get-src');
 
 // INTERNAL BUILD DATA-STORE
 const store = {};
@@ -42,7 +42,7 @@ const {
   // optimizeSVGs, 
   // optimizeImages, 
   plugins = {before: [], default: [], after: []}, 
-} = require('./utils/config.js');
+} = require('./utils/config/config.js');
 
 // USER 'DATA.JS' CONFIG
 // Get user's data config object. We pass it into plugins (when necessary) 

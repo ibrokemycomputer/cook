@@ -4,11 +4,11 @@ const cwd = process.cwd();
 const browserSync = require('browser-sync').create('Dev Server');
 const chalk = require('chalk');
 const packageJSON = require('../package.json');
-// const Logger = require(`./utils/logger.js`);
+// const Logger = require('./utils/logger/logger.js');
 const { execSync } = require('child_process');
 
 // Config
-const {distPath,srcPath,startPath,watch,watchReplace} = require('./utils/config.js');
+const {distPath,srcPath,startPath,watch,watchReplace} = require('./utils/config/config.js');
 
 // FILES TO WATCH
 // The default file paths to watch

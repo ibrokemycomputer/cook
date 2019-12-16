@@ -8,12 +8,12 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
-const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
 // const { exec } = require('child_process');
 
 // Config
-const {distPath,srcPath} = require('../utils/config.js');
+const {distPath,srcPath} = require('../utils/config/config.js');
 
 // DEFINE
 // -----------------------------

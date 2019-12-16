@@ -6,9 +6,9 @@ const fs = require('fs-extra');
 const cliCursor = require('cli-cursor');
 const cliSpinners = require('cli-spinners');
 const v8 = require('v8');
-const Logger = require('./logger.js');
-const Spinner = require('./spinner.js');
-const Timer = require('./timer.js');
+const Logger = require('../logger/logger.js');
+const Spinner = require('../spinner/spinner.js');
+const Timer = require('../timer/timer.js');
 const {execSync} = require('child_process');
 const {lstatSync,readdirSync} = require('fs-extra');
 
@@ -17,7 +17,7 @@ const jsdomLib = require('jsdom');
 const {JSDOM} = jsdomLib;
 
 // BUILD CONFIG
-const {activeLink,convertPageToDirectory,includeAttr,inlineAttr} = require('./config.js');
+const {activeLink,convertPageToDirectory,includeAttr,inlineAttr} = require('../config/config.js');
 
 
 // JSDOM CONFIG

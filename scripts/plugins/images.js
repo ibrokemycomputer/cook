@@ -6,8 +6,8 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
 
 const SVGO = require('svgo');
 const imagemin = require('imagemin');
@@ -18,7 +18,7 @@ const imageminPngquant = require('imagemin-pngquant');
 
 // Config
 // Config
-const {customImgDir, customImgTypes, distPath, svgOpts} = require('../utils/config.js');
+const {customImgDir, customImgTypes, distPath, svgOpts} = require('../utils/config/config.js');
 
 // PLUGIN OPTIONS
 // -----------------------------

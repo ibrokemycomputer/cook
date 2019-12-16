@@ -10,16 +10,16 @@ const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
 // const rimraf = require('rimraf');
-const utils = require('../utils/util.js');
-const Logger = require('../utils/logger.js');
-const Spinner = require('../utils/spinner.js');
-const Timer = require('../utils/timer.js');
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
+const Spinner = require('../utils/spinner/spinner.js');
+const Timer = require('../utils/timer/timer.js');
 
 // USER 'MAIN.JS' CONFIG
-const {convertPageToDirectory,distPath} = require('../utils/config.js');
+const {convertPageToDirectory,distPath} = require('../utils/config/config.js');
 
 // GET SOURCE
-const {getSrcConfig} = require('../utils/get-src');
+const {getSrcConfig} = require('../utils/get-src/get-src');
 
 
 // DEFINE

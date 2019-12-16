@@ -6,11 +6,11 @@ const cwd = process.cwd();
 // const chalk = require('chalk');
 const fs = require('fs-extra');
 // const path = require('path');
-const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
 
 // CONFIG
-const {distPath,sitemap,srcPath} = require('../utils/config.js');
+const {distPath,sitemap,srcPath} = require('../utils/config/config.js');
 
 
 // DEFINE

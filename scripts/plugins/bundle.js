@@ -13,11 +13,11 @@ const chalk = require('chalk');
 const fs = require('fs-extra');
 const minifyCss = require('clean-css');
 const minifyEs = require('uglify-es');
-const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
 
 // Config
-const {bundle,srcPath,distPath} = require('../utils/config.js');
+const {bundle,srcPath,distPath} = require('../utils/config/config.js');
 
 
 // DEFINE

@@ -6,10 +6,10 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const utils = require(`../utils/util.js`);
+const utils = require('../utils/util/util.js');
 
 // Config
-const {distPath, activeLink} = require('../utils/config.js');
+const {distPath, activeLink} = require('../utils/config/config.js');
 
 
 // DEFINE

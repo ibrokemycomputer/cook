@@ -6,8 +6,8 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const Logger = require(`./logger.js`);
 const fs = require('fs-extra');
+const Logger = require('../logger/logger.js');
 
 
 // DEFINE

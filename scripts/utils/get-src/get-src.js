@@ -8,11 +8,11 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs').promises;
-const utils = require(`./util.js`);
-const Logger = require(`./logger.js`);
+const utils = require('../util/util.js');
+const Logger = require('../logger/logger.js');
 
 // Config
-const {includePaths,excludePaths,distPath,srcPath} = require('./config.js');
+const {includePaths,excludePaths,distPath,srcPath} = require('../config/config.js');
 
 
 // EXPORT

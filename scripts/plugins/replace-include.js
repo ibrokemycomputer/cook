@@ -9,11 +9,11 @@ const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs').promises;
 const path = require('path');
-const utils = require(`../utils/util.js`);
-const Logger = require(`../utils/logger.js`);
+const utils = require('../utils/util/util.js');
+const Logger = require('../utils/logger/logger.js');
 
 // Config
-const {convertPageToDirectory,distPath,srcPath} = require('../utils/config.js');
+const {convertPageToDirectory,distPath,srcPath} = require('../utils/config/config.js');
 
 
 // DEFINE
