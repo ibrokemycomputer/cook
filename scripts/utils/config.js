@@ -1,6 +1,7 @@
 // REQUIRE
 // ----------------------------------
 const cwd = process.cwd();
+const fs = require('fs');
 
 
 // GET USER'S CONFIG
