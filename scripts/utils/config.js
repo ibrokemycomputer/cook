@@ -6,7 +6,9 @@ const cwd = process.cwd();
 // GET USER'S CONFIG
 // -----------------------------
 // Store user's config, or set default if user omitted 
-const userConfig = require(`${cwd}/config/main.js`) || {};
+const userConfigPath = `${cwd}/config/main.js`;
+const userConfigPathExists = fs.existsSync(userConfigPath);
+const userConfig = userConfigPathExists ? require(userConfigPath) : {};
 
 
 // DEFINE DEFAULT CONFIG
