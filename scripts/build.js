@@ -32,7 +32,7 @@ const setActiveLinks = require('./plugins/set-active-links.js');
 // const {compressAndNextGen, optimizeSVG, replaceImgTags} = require('./plugins/images.js');
 
 // GET SOURCE
-const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src/get-src');
+const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src/get-src.js');
 
 // INTERNAL BUILD DATA-STORE
 const store = {};
