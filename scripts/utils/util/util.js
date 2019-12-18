@@ -132,32 +132,16 @@ async function createDirectory(path) {
  * @description Custom terminal error stack-trace message
  * @param {Object} e - The error event
  * @param {String} [label] - The console section label
- * @param {String} [post] - 'Post' message after call stack
  * @private
  */ 
-function customError(e, label = 'Error', post) {
-  if (!e.stack) return e;
-  const errorStackFileLine = e.stack.split('\n')[1];
-  if (!errorStackFileLine) {
-    console.log(chalk.red(e));
-    return e;
-  }
-  const splitColon = errorStackFileLine.split(':');
-  const lineNumber = splitColon[splitColon.length - 2];
-  const fileName = splitColon[splitColon.length - 3];
-  // Display custom error message
+function customError(e, label = 'Error') {
+  // Display custom message
   console.log(chalk.bold.red(`\n${label}`));
-  console.log(chalk.red(e.message));
-  if (fileName) {
-    const fileSplit = fileName.split(' (');
-    const filePart = fileSplit[0];
-    const filePath = fileSplit[1];
-    if (filePart) console.log(chalk.grey(`${filePart.trim()} (line ${lineNumber})`));
-    if (filePath) console.log(chalk.grey(filePath));
-  }
-  if (post) console.log(post);
-
-  customKill('Hard stop to prevent deploy')
+  // Display the error
+  console.log(e);
+  // Kill the node process to prevent completion
+  // Note: This is so it doesn't accidently get to the deploy phase and deploy w/ broken code
+  customKill('Build Stopped');
 }
 
 /**
@@ -170,10 +154,10 @@ function customError(e, label = 'Error', post) {
  * @private
  */ 
 function customKill(msg) {
-  // Escape ( and )
-  const formatMsg = msg.replace(/\(/g, '\\(').replace(/\)/g, '\\)');
   // Display terminal message and kill process
-  execSync(`echo '' && echo ${chalk.red(formatMsg)} && killall -9 node`, {stdio: 'inherit'});
+  console.log(`\n${chalk.red(msg)}`);
+  // execSync(`echo '' && echo ${chalk.red(formatMsg)}`, {stdio: 'inherit'});
+  execSync(`killall -9 node`, {stdio: 'inherit'});
 }
 
 /**

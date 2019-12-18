@@ -46,15 +46,15 @@ const defaultConfig = {
   // ---------------------------------
   // Add config items here for your own custom build plugins
 
-  // Build-Process Plugins: Add per-site plugins to use during build process
-  // NOTE: `zgReplaceTokens` needs to come before `zgDocsBuildNavs`, 
-  // since the former creates the markup the latter reads to build the in-page docs nav
+  // Build-Process Plugins: Add per-site plugins to use during build process.
+  // Note: Execution order is left-to-right, so add dependency plugins first
   plugins: {
     before: [],
     default: [],
     after: [],
   },
-  // pluginPath: 'plugins',
+  // Default repo directory to find referenced plugins
+  pluginPath: 'plugins',
 
   // CSS and JS Bundling
   bundle: {
@@ -99,12 +99,19 @@ const defaultConfig = {
   //includeAttr: 'include',
   //inlineAttr: 'inline',
   
-  // Live reload dev browser when these files change (`/assets/css`,`/assets/plugin` (.css and .js), and all `.html` by default)
-  // Note: Added paths here are *in addition* to the defaults. To replace the defaults, set the `watchReplace` option listed below
-  // watch: [ 
-  //   '/pricing/css/*.css', 
-  // ],
-  // Set this option to only watch the paths listed in this config file and not the default paths
+  // Live reload dev browser when these files change
+  // Note: These are the default paths. Paths added by the user in their `/config/main.js` file as the `watch: []` property are added *in addition* to these. 
+  // However, they may set the `watchReplace` option listed below, which will only watch their specified options and not the defaults.
+  watchDefaults: [
+    '/assets/css/*.css',
+    '/**/*.html',
+    '/assets/plugin/**/*.css',
+    '/assets/plugin/**/*.js',
+  ],
+  // User-added watched files (optional)
+  // Note: Only added here for documentation. Would only be added to user's config file.
+  //watch: [],
+  // Set this option to only watch the paths listed in this config file and not the default paths.
   //watchReplace: true,
 
   // customData: 'getWordpressData',

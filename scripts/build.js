@@ -2,7 +2,7 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const fs = require('fs').promises;
+const fs = require('fs-extra');
 // const Logger = require('./utils/logger/logger.js');
 // const Spinner = require('./utils/spinner/spinner.js');
 // const {generatePages} = require('./utils/performance/performance');
@@ -40,17 +40,23 @@ const {plugins} = config;
 
 // INTERNAL BUILD DATA-STORE
 const store = {
+  // BUNDLE
   // Init bundle plugin by creating temporary array for the build process.
   // This will serve as a running cache so we don't bundle already-bundled files
   // in subsequent pages in the file loop.
   bundle: { css: {}, js: {}, },
+  // Cache custom plugins after first lookup (require)
+  plugins: {},
 };
 
 // USER'S DATA-STORE
 // Get user's data config object. We pass it into plugins (when necessary) 
 // so that additional data can be added to it from plugins instead of needing 
 // to manually define everything from the start in `/config/data.js`
-const data = require(`${cwd}/config/data.js`);
+// Note: We init as empty object if user didn't create a `data.js` config file
+const userDataPath = `${cwd}/config/data.js`;
+const userDataPathExists = fs.existsSync(userDataPath);
+const data = userDataPathExists ? require(userDataPath) : {};
 
 
 // BUILD
@@ -73,7 +79,7 @@ class Build {
     await copySrc();
 
     // CUSTOM PLUGINS: Run custom user plugins before file loop
-    await customPlugins({data, plugins: plugins.before, log: 'Before' });
+    await customPlugins({store, data, plugins: plugins.before, log: 'Before' });
 
     // THE IMAGES LOOP
     // getSrcImages(images => {
@@ -100,7 +106,7 @@ class Build {
       let file = await getSrcConfig({fileName});
 
       // CUSTOM PLUGINS: Run custom user plugins during file loop
-      await customPlugins({file, data, plugins: plugins.default});
+      await customPlugins({file, store, data, plugins: plugins.default});
       
       // PLUGIN: Render all ES6 template strings 
       replaceTemplateStrings({file, data, allowType: ['.html', '.json', '.webmanifest']});
@@ -150,7 +156,7 @@ class Build {
     await bundleBuild({store});
 
     // CUSTOM PLUGINS: Run custom user plugins after file loop
-    await customPlugins({data, plugins: plugins.after, log: 'After' });
+    await customPlugins({store, data, plugins: plugins.after, log: 'After' });
 
     // PLUGIN: Remove /dist/includes after build
     // cleanupDist();
