@@ -3,8 +3,8 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs').promises;
-const Logger = require('./utils/logger/logger.js');
-const Spinner = require('./utils/spinner/spinner.js');
+// const Logger = require('./utils/logger/logger.js');
+// const Spinner = require('./utils/spinner/spinner.js');
 // const {generatePages} = require('./utils/performance/performance');
 
 // UTILS
@@ -21,6 +21,7 @@ const createDist = require('./plugins/create-dist');
 const createDirFromFile = require('./plugins/create-dir-from-file');
 const customPlugins = require('./plugins/custom-plugins');
 const generateSitemap = require('./plugins/generate-sitemap-xml');
+// const {compressAndNextGen, optimizeSVG, replaceImgTags} = require('./plugins/images.js');
 const minifySrc = require('./plugins/minify-src');
 const replaceInclude = require('./plugins/replace-include.js');
 const replaceInline = require('./plugins/replace-inline.js');
@@ -29,35 +30,27 @@ const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
-// const {compressAndNextGen, optimizeSVG, replaceImgTags} = require('./plugins/images.js');
-
 // GET SOURCE
 const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src/get-src.js');
 
+// CONFIG
+// Combined user overrides on top of internal defaults
+const config = require('./utils/config/config.js');
+const {plugins} = config;
+
 // INTERNAL BUILD DATA-STORE
-const store = {};
+const store = {
+  // Init bundle plugin by creating temporary array for the build process.
+  // This will serve as a running cache so we don't bundle already-bundled files
+  // in subsequent pages in the file loop.
+  bundle: { css: {}, js: {}, },
+};
 
-// USER 'MAIN.JS' CONFIG
-const {
-  // optimizeSVGs, 
-  // optimizeImages, 
-  plugins = {before: [], default: [], after: []}, 
-} = require('./utils/config/config.js');
-
-// USER 'DATA.JS' CONFIG
+// USER'S DATA-STORE
 // Get user's data config object. We pass it into plugins (when necessary) 
 // so that additional data can be added to it from plugins instead of needing 
 // to manually define everything from the start in `/config/data.js`
 const data = require(`${cwd}/config/data.js`);
-
-// INIT BUNDLE.JS
-// Init bundle plugin by creating temporary array for the build process.
-// This will serve as a running cache so we don't bundle already-bundled files
-// in subsequent pages in the file loop.
-data.bundle = {
-  css: {}, 
-  js: {}, 
-};
 
 
 // BUILD
@@ -139,7 +132,7 @@ class Build {
       setActiveLinks({file, allowType: ['.html']});
 
       // PLUGIN: Compile grouped CSS or JS for bundling
-      bundleAdd({file, data, allowType: ['.html']});
+      bundleAdd({file, store, allowType: ['.html']});
 
       // PLUGIN: Minify Source
       minifySrc({file, disallowType: ['.json', '.webmanifest']});
@@ -154,7 +147,7 @@ class Build {
     generateSitemap();
 
     // PLUGIN: Build and create bundled file
-    await bundleBuild({data});
+    await bundleBuild({store});
 
     // CUSTOM PLUGINS: Run custom user plugins after file loop
     await customPlugins({data, plugins: plugins.after, log: 'After' });

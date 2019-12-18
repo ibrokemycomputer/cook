@@ -28,15 +28,15 @@ const {bundle,srcPath,distPath} = require('../utils/config/config.js');
  * The new file is inserted into the page at the location of the last bundled tag to preserve execution order.
  * @param {Object} obj - Deconstructed options object
  * @property {Object} obj.file - The current file's info (name, extension, path, src, etc.)
- * @property {Object} obj.data - The user's custom data from the `data.js` config file, so they can access it in their custom plugins
+ * @property {Object} obj.store - The build process' own data store object we'll add the cached include-file content to
  * @property {Array} [obj.allowType] - Allowed file types (Opt-in)
  * @property {Array} [obj.disallowType] - Disallowed file types (Opt-out)
  */
 class Bundle {
-  constructor({file, data, allowType, disallowType, excludePaths = []}) {
+  constructor({file, store, allowType, disallowType, excludePaths = []}) {
     this.opts = {file, allowType, disallowType, excludePaths};
     this.file = file;
-    this.data = data;
+    this.store = store;
     this.allowType = allowType;
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
@@ -95,8 +95,8 @@ class Bundle {
    */
   async build() {
     // Get file references
-    const cssGroups = this.data.bundle.css;
-    const jsGroups = this.data.bundle.js;
+    const cssGroups = this.store.bundle.css;
+    const jsGroups = this.store.bundle.js;
 
     // Create bundle directory if it doesn't already exist
     await utils.createDirectory(`${distPath}/${this.bundleDistPath}`);
@@ -109,6 +109,70 @@ class Bundle {
 
   // PRIMARY PROCESS METHODS
   // -----------------------------
+
+  /**
+   * @description Find all `<link>` or `<script>` tags that are bundled together. 
+   * Store the group name and the file paths, then remove the 'old' DOM element references.
+   * Finally, insert a new element that will reference the bundle. 
+   * ---
+   * NOTE: linked bundle file created further in the build process.
+   * @param {Array} targets - Array of `<link>` or `<script>` tags to group and then remove.
+   * @param {String} type - This method needs to know if we're working on a `<link>` or `<script>` tag (combined method)
+   * @private
+   */
+  async groupSrcAndInsertBundle(targets, type) {
+    const elType = type === 'js' ? 'script' : 'link';
+    const pathAttr = type === 'js' ? 'src' : 'href';
+    const bundleType = this.store.bundle[type];
+    const counters = {};
+
+    // Loop through each found target and add the source path 
+    // to an appropriate group array.
+    targets.forEach(target => {
+      // Before storing, add a flag for whether we should minify the source or not
+      // For example, if bundling vendor code, it is likely already minified, so we don't want to do it again.
+      const minify = !target.hasAttribute('no-minify') && !target.hasAttribute('data-no-minify');
+      // Get the element's group by finding the `[bundle]` attribute value
+      const {raw,formatted} = this.getGroup(target);
+      // If the group hasn't been added to the collection, add it
+      if (!bundleType[formatted]) bundleType[formatted] = [];
+      const bundleGroup = bundleType[formatted];
+      // If the path hasn't been added to the group yet, add it
+      const path = target[pathAttr];
+      // Map just the paths so we can use indexOf on a flattened string-array, instead of the normal object-array
+      const pathsMap = bundleGroup.map(g => g.path);
+      // Add the file entry if it doesn't already exist (this way if the same file added on multiple pages, we only add once)
+      if (pathsMap.indexOf(path) === -1) bundleGroup.push({ path, minify });
+      // Add index of this element in its group as attribute. Will be used in next step
+      if (!counters[formatted]) counters[formatted] = 0;
+      target.setAttribute('group-index', counters[formatted]);
+      // Update counter for next step
+      counters[formatted] += 1;
+    });
+
+    // Loop through each target again.
+    // If it is the last bundle-group item on the page,
+    // we'll insert that bundle call into the DOM above it.
+    // ---
+    // For all targets we'll remove them from the source
+    // now that we're inserting the bundled version instead.
+    targets.forEach(target => {
+      const {raw,formatted} = this.getGroup(target);
+      const numInstancesFoundInGroup = [...targets].filter(t => t.getAttribute('data-bundle') === raw || t.getAttribute('bundle') === raw);
+      const groupLen = numInstancesFoundInGroup.length;
+      const groupIndex = parseInt(target.getAttribute('group-index'));
+      const isLast = groupIndex === groupLen - 1;
+      // If the element is the last one of the group on the page,
+      // Add the bundled version into the DOM above it
+      // NOTE: We're making the path 'relative' (instead of adding `${distPath}/`) since this will be the tag's attribute source reference
+      const filePath = `/${this.bundleDistPath}/bundle-${formatted}.${type}`;
+      const elOptions = type === 'js' ? ` src="${filePath}"` : ` rel="stylesheet" href="${filePath}"`;
+      if (isLast) target.insertAdjacentHTML('beforebegin', `<${elType}${elOptions}></${elType}>`)
+      // Then remove the old indiv. instance since the bundle is now loaded
+      // NOTE: We remove all 'old' instances since they are now bundled
+      target.remove();
+    });
+  }
 
   /**
    * @description Get all referenced files' source and create the new bundled file.
@@ -141,70 +205,6 @@ class Bundle {
       // See: `this.bundleDistPath` defined in the constructor
       await fs.writeFile(`${distPath}/${this.bundleDistPath}/bundle-${key}.${type}`, bundledSrc, 'utf-8');
     }
-
-  /**
-   * @description Find all `<link>` or `<script>` tags that are bundled together. 
-   * Store the group name and the file paths, then remove the 'old' DOM element references.
-   * Finally, insert a new element that will reference the bundle. 
-   * ---
-   * NOTE: linked bundle file created further in the build process.
-   * @param {Array} targets - Array of `<link>` or `<script>` tags to group and then remove.
-   * @param {String} type - This method needs to know if we're working on a `<link>` or `<script>` tag (combined method)
-   * @private
-   */
-  async groupSrcAndInsertBundle(targets, type) {
-    const elType = type === 'js' ? 'script' : 'link';
-    const pathAttr = type === 'js' ? 'src' : 'href';
-    const bundleType = this.data.bundle[type];
-    const counters = {};
-
-    // Loop through each found target and add the source path 
-    // to an appropriate group array.
-    targets.forEach(target => {
-      // Before storing, add a flag for whether we should minify the source or not
-      // For example, if bundling vendor code, it is likely already minified, so we don't want to do it again.
-      const minify = !target.hasAttribute('no-minify') && !target.hasAttribute('data-no-minify');
-      // Get the element's group by finding the `[bundle]` attribute value
-      const group = this.getGroup(target);
-      // If the group hasn't been added to the collection, add it
-      if (!bundleType[group]) bundleType[group] = [];
-      const bundleGroup = bundleType[group];
-      // If the path hasn't been added to the group yet, add it
-      const path = target[pathAttr];
-      // Map just the paths so we can use indexOf on a flattened string-array, instead of the normal object-array
-      const pathsMap = bundleGroup.map(g => g.path);
-      // Add the file entry if it doesn't already exist (this way if the same file added on multiple pages, we only add once)
-      if (pathsMap.indexOf(path) === -1) bundleGroup.push({ path, minify });
-      // Add index of this element in its group as attribute. Will be used in next step
-      if (!counters[group]) counters[group] = 0;
-      target.setAttribute('group-index', counters[group]);
-      // Update counter for next step
-      counters[group] += 1;
-    });
-
-    // Loop through each target again.
-    // If it is the last bundle-group item on the page,
-    // we'll insert that bundle call into the DOM above it.
-    // ---
-    // For all targets we'll remove them from the source
-    // now that we're inserting the bundled version instead.
-    targets.forEach(target => {
-      const groupName = this.getGroup(target);
-      const numInstancesFoundInGroup = [...targets].filter(t => t.getAttribute('data-bundle') === groupName || t.getAttribute('bundle') === groupName);
-      const groupLen = numInstancesFoundInGroup.length;
-      const groupIndex = parseInt(target.getAttribute('group-index'));
-      const isLast = groupIndex === groupLen - 1;
-      // If the element is the last one of the group on the page,
-      // Add the bundled version into the DOM above it
-      // NOTE: We're making the path 'relative' (instead of adding `${distPath}/`) since this will be the tag's attribute source reference
-      const filePath = `/${this.bundleDistPath}/bundle-${groupName}.${type}`;
-      const elOptions = type === 'js' ? ` src="${filePath}"` : ` rel="stylesheet" href="${filePath}"`;
-      if (isLast) target.insertAdjacentHTML('beforebegin', `<${elType}${elOptions}></${elType}>`)
-      // Then remove the old indiv. instance since the bundle is now loaded
-      // NOTE: We remove all 'old' instances since they are now bundled
-      target.remove();
-    });
-  }
   
   
   // HELPER METHODS
@@ -212,11 +212,14 @@ class Bundle {
 
   /**
    * @description Get and format the group name from the `[bundle]` attribute value.
-   * @param {*} target 
+   * @example `data-bundle="My Bundle"` becomes `my-bundle`, for use in the bundled file's name: `data-my-bundle.js`
+   * @param {Object} target - The `<link>` or `<script>` element
+   * @returns {Object}
    */
   getGroup(target) {
-    const groupRaw = target.getAttribute('data-bundle') || target.getAttribute('bundle');
-    return groupRaw.replace(/ /g, '-').toLowerCase();
+    const raw = target.getAttribute('data-bundle') || target.getAttribute('bundle');
+    const formatted = raw.replace(/ /g, '-').toLowerCase();
+    return {raw,formatted};
   }
 
   async getSrc(entry, type) {
