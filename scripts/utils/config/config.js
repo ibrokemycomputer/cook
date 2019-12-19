@@ -2,6 +2,7 @@
 // ----------------------------------
 const cwd = process.cwd();
 const fs = require('fs');
+const merge = require('lodash.merge');
 
 
 // GET USER'S CONFIG
@@ -134,8 +135,11 @@ const defaultConfig = {
 
 // COMBINE CONFIGS
 // -----------------------------
-// Combine configs, by overriding any defaults set by the user
-const config = Object.assign({}, defaultConfig, userConfig);
+// NOTE: Using Lodash `merge` instead of `Object.assign` because,
+// there will be child objects and arrays, which would override
+// instead of combine with the default versions.
+const config = merge({}, defaultConfig, userConfig);
+
 
 
 // EXPORT

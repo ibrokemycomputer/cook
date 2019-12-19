@@ -6,18 +6,23 @@
 // REQUIRE
 // -----------------------------
 const cwd = process.cwd();
-const chalk = require('chalk');
+// const chalk = require('chalk');
 const fs = require('fs').promises;
-const utils = require('../util/util.js');
 const Logger = require('../logger/logger.js');
+const Util = require('../util/util.js');
 
-// Config
+// CONFIG
 const {includePaths,excludePaths,distPath,srcPath} = require('../config/config.js');
+
+// DATA STORE
+const data = require(`${cwd}/config/data.js`);
+
 
 
 // EXPORT
 // -----------------------------
 module.exports = {
+  getDynamicFiles,
   getSrcConfig,
   getSrcFiles,
   getSrcImages
@@ -26,6 +31,22 @@ module.exports = {
 
 // PUBLIC METHODS
 // -----------------------------
+
+/**
+ * @description If the user added dynamic page information to the correct property
+ * in the data store, combine those pages with the static, manual .html pages.
+ * @param {Array} files - The array of user-created static .html file paths
+ * @returns {Array}
+ * @private
+ */
+function getDynamicFiles(files) {
+  // Early Exit: User did not add dynamic pages to the data store or it was malformed
+  if (!data || !data.dynamicPages || !data.dynamicPages.length) return files;
+  // Otherwise, combine the the user's static .html pages with their dynamic pages
+  // whose path and source is stored, but does not exist as an .html file yet
+  return [...files, ...data.dynamicPages].flat();
+}
+
 
 /**
  * @description - Store information for use in build plugins based on the current file
@@ -40,20 +61,44 @@ async function getSrcConfig({fileName, excludeSrc = false }) {
   if (!fileName) return;
   // Init obj
   let file = {};
+
+  // Store if it is a dynamic page
+  const isDynamic = typeof fileName !== 'string';
+  let dynamicSrc;
+
+  // IF A DYNAMIC PAGE
+  // If a dynamically-generated page, `fileName` is an object instead of a string path.
+  // Therefore, we need to get and format the dynamic object's path into the format we need,
+  // namely: dist_path/file_path
+  if (isDynamic) {
+    // Store source string since we're overriding the object
+    dynamicSrc = fileName.src;
+    // Check if path is already formatted to include the `dist` path
+    const regex = new RegExp(`^${distPath}`);
+    const path = fileName.path.match(regex) ? fileName.path : `${distPath}${fileName.path}`;
+    fileName = `${path}/index.html`;
+  }
+
   
   // Store filename parts
-  let {ext,name,nameIfIndex} = utils.getFileParts(fileName);
+  let {ext,name,nameIfIndex} = Util.getFileParts(fileName);
   file.ext = ext;
   file.name = name;
   file.nameIfIndex = nameIfIndex;
   file.path = fileName;
+  if (isDynamic) file.isDynamic = true;
 
   // Early Exit: Return the file meta details but skip the source
   if (excludeSrc) return file;
   
-  // Get file source
-  // file.src = fs.readFileSync(fileName, 'utf-8');
-  file.src = await fs.readFile(fileName, 'utf-8');
+  // STORE FILE SOURCE
+  // If a dynamic page, just use the source in memory
+  if (isDynamic) file.src = dynamicSrc;
+  // Otherwise, it's a static .html page
+  // Get and read the file to store its page source
+  else file.src = await fs.readFile(fileName, 'utf-8');
+  
+  // REMOVE COMMENTS
   // Sanitize comments that have non-closing html elements in them. JSDOM will try to close it in the DOM
   // but since there is no starting tag (it's in the comment) it will break the dom
   file.src = removeCommentTags(file.src);
@@ -77,7 +122,7 @@ async function getSrcFiles() {
   // If only a single page was updated, just run build process on it
   // Note: If the page was an include, we need to rebuild all pages. 
   // Other pages may have had the include, but has since been replaced w/ static content
-  const isValidPageChange = utils.validatePageChange();
+  const isValidPageChange = Util.validatePageChange();
   if (isValidPageChange) {
     const getDistVersionOfChangedPage = process.env.DEV_CHANGED_PAGE.replace(srcPath, distPath);
     files = [getDistVersionOfChangedPage];
@@ -95,9 +140,9 @@ async function getSrcFiles() {
     // Allowed page extensions
     const allowedExt = ['css','html','js'];
     // Get files in `/dist`
-    files = utils.getPaths(distPath, distPath, excludedPaths);
+    files = Util.getPaths(distPath, distPath, excludedPaths);
     // Get only the allowed files by extension (.css, .html)
-    files = files.filter(fileName => manualAllow(fileName, userAllowedPaths) || utils.isExtension(fileName, allowedExt));
+    files = files.filter(fileName => manualAllow(fileName, userAllowedPaths) || Util.isExtension(fileName, allowedExt));
     // Move known include files to the front of the array, so they are ideally built first 
     // before being replaced in other page files.
     files = files.sort((a,b) => {
@@ -126,9 +171,9 @@ async function getSrcImages(cb) {
   // Allowed page extensions
   const allowedExt = ['jpg', 'jpeg', 'png', 'svg'];
   // Get images in `/dist`
-  let images = utils.getPaths(distPath, distPath, excludedPaths);
+  let images = Util.getPaths(distPath, distPath, excludedPaths);
   // Get only the allowed images by extension (.css, .html)
-  images = images.filter(fileName => utils.isExtension(fileName, allowedExt));
+  images = images.filter(fileName => Util.isExtension(fileName, allowedExt));
   // Run tasks on matched images
   if (cb) cb(images);
 }

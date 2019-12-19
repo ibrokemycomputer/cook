@@ -4,6 +4,7 @@
   "version": "1.7.0",
   "private": true,
   "scripts": {
+    "postinstall": "node patches/jsdom-fetch-fix.js",
     "build": "node scripts/build.js",
     "dev": "NODE_ENV=development npm run build && node scripts/dev.js",
     "dev:prod": "NODE_ENV=production npm run build && http-server ./dist -p $npm_package_config_devPort",
@@ -30,6 +31,7 @@
     "http-server": "^0.12.0",
     "jsdom": "^15.2.1",
     "lodash.clonedeep": "^4.5.0",
+    "lodash.merge": "^4.6.2",
     "npm-check-updates": "^4.0.1",
     "rimraf": "^3.0.0",
     "uglify-es": "^3.3.9"

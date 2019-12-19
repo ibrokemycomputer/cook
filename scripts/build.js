@@ -9,7 +9,7 @@ const fs = require('fs-extra');
 
 // UTILS
 const utils = require('./utils/util/util.js');
-const {runFileLoop} = utils;
+const {runFileLoop,updatePage} = utils;
 
 
 // PLUGINS
@@ -31,7 +31,7 @@ const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
 // GET SOURCE
-const {getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src/get-src.js');
+const {getDynamicFiles, getSrcConfig, getSrcFiles, getSrcImages} = require('./utils/get-src/get-src.js');
 
 // CONFIG
 // Combined user overrides on top of internal defaults
@@ -92,7 +92,12 @@ class Build {
     // });
 
     // GET THE ALLOWED FILES 
-    const files = await getSrcFiles();
+    let files = await getSrcFiles();
+    
+    // ADD ANY DYNAMICALLY-GENERATED PAGES
+    // If pages were added in `this.data.dynamicPages` array, add them.
+    // NOTE: Runs after `createDirFromFile()` since .html pages not created yet.
+    files = getDynamicFiles(files);
 
     // PLUGIN: Convert allowed /dist .html file to directory
     await createDirFromFile({files, allowType: ['.html'] });
@@ -144,7 +149,7 @@ class Build {
       minifySrc({file, disallowType: ['.json', '.webmanifest']});
       
       // Write new, modified source back to the file
-      fs.writeFile(file.path, file.src);
+      await updatePage(file);
 
       return fileName;
     }

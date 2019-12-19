@@ -47,6 +47,8 @@ const replaceExternalLinkProtocolDefaults = ['cdn', 'www'];
 // EXPORT
 // ----------------------------------
 module.exports = {
+  addDirectory,
+  addDynamicPage,
   attr,
   convertExternalLinks,
   countDisplay,
@@ -71,12 +73,62 @@ module.exports = {
   runFileLoop,
   setSrc,
   skipped,
+  updatePage,
   validatePageChange,
 };
 
 
 // METHODS AND CONSTS
 // ----------------------------------
+
+/**
+ * @description Create directories in a path string if they don't already exist.
+ * Used before `fs.writeFile` to make sure destination exists.
+ * @param {Object} file 
+ * @property {String} file.ext - The file's extension
+ * @property {String} file.name - The file's name
+ * @property {String} file.nameIfIndex - The file's name excluding `/index.html`
+ * @property {String} file.path - The file's full path
+ * @property {String} file.src - The file's source
+ * @private
+ */
+function addDirectory(file) {
+  // Destructure object props
+  const {isDynamic,path} = file;
+  // Get the file path without the `.html`
+  // NOTE: For dynamically-created pages, they didn't run through the 'convert to directory' plugin
+  // So we need to do that here, by dropping the full `index.html`
+  // Static-page Example: `path/to/file.html` becomes `path/to/file`
+  // Dynamic-page Example: `path/to/file/index.html` becomes `path/to/file`
+  const splitOn = isDynamic ? 'index.html' : '.';
+  const pathSplit = path.split(splitOn)[0];
+  const filePath = pathSplit.match(/\/index$/) ? pathSplit.substring(4, -1) : pathSplit;
+  // Create the parent directories
+  fs.mkdirpSync(filePath);
+}
+
+/**
+ * @description For dynamically-generated pages (other Github repo, Wordpress, Drupal, etc.), 
+ * instead of first creating the .html page with the converted source and then running the main file loop,
+ * we store the new page's path and source in memory. Then, during the main file loop, we read entries
+ * from our dynamic page-store instead of `fs.readFile` the page. This saves a duplication step, where
+ * we only need to `fs.writeFile` once for dynamic pages (file loop) instead of twice 
+ * (before the file loop when the content was fetched and converted, and the file loop)
+ * @param {String} path - The path the dynamic .htnml page will be created at
+ * @param {String} src - The page's DOM source we'll use to populate the page
+ * @param {Object} store - Reference to the data store we'll add the page info entry to. Usually `this.data` from `/config/data.js`
+ * @private
+ */
+function addDynamicPage(path,src,store) {
+  // Early Exit: Invalid data provided
+  if (!path) customKill(`addDynamicPage(): No page path provided`);
+  if (!src) customKill(`addDynamicPage(): No page source provided`);
+  if (!store) customKill(`addDynamicPage(): No data store provided`);
+  // If desired page collection property doesn't exist on the target store object, add it
+  if (!store.dynamicPages) store.dynamicPages = [];
+  // Add entry to data store
+  store.dynamicPages.push({ path, src });
+}
 
 /**
  * @description Find all href="www.xxxx.com" links and add http:// protocol. 
@@ -427,17 +479,10 @@ async function runFileLoop(files, method) {
     const file = files[index];
     await method(file);
     index += 1;
-    loading.updateAsPercentage(file, index, loading.total, true);
+    const fileName = file.path || file;
+    loading.updateAsPercentage(fileName, index, loading.total, true);
     if (index < loading.total) await recurseFiles(index);
   }
-
-  // NOTE: There is no noticeable speed difference from the below over the recusion method above
-  // NOTE: However, the logging shows each page message cleaner in the above
-  // await promiseAll(files, method, data => {
-  //   loading.count += 1;
-  //   // When each promise returns, update terminal percentage message
-  //   loading.updateAsPercentage(data.data, loading.count, loading.total, true);
-  // });
   
   // End timer
   loading.stop(`Files Modified (${loading.total}) ${timer.end()}`);
@@ -489,6 +534,26 @@ function setSrc({dom, path}) {
  */
 function skipped(test, label = 'skipped') {
   return test.length ? `(${test.length})` : chalk.grey('(skipped)');
+}
+
+/**
+ * @description Return whether dev live reload change event was an individual page change,
+ * AND if the file wasn't an include
+ * @param {Object} file 
+ * @property {String} file.ext - The file's extension
+ * @property {String} file.name - The file's name
+ * @property {String} file.nameIfIndex - The file's name excluding `/index.html`
+ * @property {String} file.path - The file's full path
+ * @property {String} file.src - The file's source
+ * @private
+ */
+async function updatePage(file) {
+  // Destructure object props
+  const {path,src} = file;
+  // CREATE NEW DIRECTORY IN /DIST (If it doesn't exist)
+  addDirectory(file);
+  // UPDATE FILE
+  await fs.writeFile(path, src);
 }
 
 /**
