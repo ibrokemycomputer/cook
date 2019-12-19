@@ -8,9 +8,8 @@
 const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
-const utils = require('../utils/util/util.js');
 const Logger = require('../utils/logger/logger.js');
-// const { exec } = require('child_process');
+const Util = require('../utils/util/util.js');
 
 // Config
 const {distPath,srcPath} = require('../utils/config/config.js');
@@ -26,7 +25,7 @@ class CopySrc {
   async init() {
     // FILE CHANGE
     // If only a single page was updated, just copy it
-    const isValidPageChange = utils.validatePageChange();
+    const isValidPageChange = Util.validatePageChange();
     if (isValidPageChange) {
       // Store start and end paths
       const changedPath = process.env.DEV_CHANGED_PAGE;
@@ -35,7 +34,7 @@ class CopySrc {
       // Show terminal message: Start
       Logger.persist.header(`\nCopied Updated Page`);
       // Copy changed page to `/dist` only
-      await fs.copy(changedSrcPath, changedDistPath);
+      await fs.copy(changedSrcPath, changedDistPath).catch(err => Util.customError(err, 'CopySrc.init(): Page Change'));
       // Show terminal message
       Logger.persist.success(`/${changedSrcPath} copied to /${changedDistPath}`);
     }
@@ -45,7 +44,7 @@ class CopySrc {
       // Show terminal message: Start
       Logger.persist.header('\nCopy /src to /dist');
       // Copy contents of `/src` to `/dist`
-      await fs.copy(srcPath, distPath);
+      await fs.copy(srcPath, distPath).catch(err => Util.customError(err, 'CopySrc.init(): Full Build'));
       // Show terminal message
       Logger.persist.success(`Content from /${srcPath} copied to /${distPath}`);
     }

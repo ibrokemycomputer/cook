@@ -7,17 +7,12 @@ const packageJSON = require('../package.json');
 // const Logger = require('./utils/logger/logger.js');
 const { execSync } = require('child_process');
 
-// Config
-const {distPath,srcPath,startPath,watch,watchReplace} = require('./utils/config/config.js');
+// CONFIG
+const {distPath,srcPath,startPath,watch,watchDefaults,watchReplace} = require('./utils/config/config.js');
 
 // FILES TO WATCH
 // The default file paths to watch
-let watchFiles = [
-  '/assets/css/*.css',
-  '/**/*.html',
-  '/assets/plugin/**/*.css',
-  '/assets/plugin/**/*.js',
-];
+let watchFiles = watchDefaults;
 // Did user add custom paths to `watch` in `/config/main.js`?
 const userAddedWatch = watch && watch.length;
 // If user set `watchReplace` option to TRUE, replace the defaults
@@ -49,12 +44,12 @@ browserSync.emitter.on('init', () => {
 // WATCH DEV FILES FOR LIVERELOAD
 // --------------------------------
 // Watch changes to `/src` files and run the build process to copy
-// to `/dist` equivalent, so we can run livereload on `/dist` to
+// to `/dist` equivalent. This way we can run livereload on `/dist` to
 // view replaced includes, and to avoid mutating `/src` files directly.
 watchFiles.forEach(path => {
   // Watch `/src` files for changes
   browserSync.watch(`${srcPath}${path}`).on('change', file => {
-    // Store the changed file as an environment variable
+    // Store the changed file as an environment variable.
     // Then when we run the build process below,
     // we'll use this now-defined variable to dictate
     // whether the whole build process is run, or just against
