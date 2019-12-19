@@ -86,6 +86,7 @@ class CustomPlugins {
     
     // RUN PLUGIN
     // Run plugin's `init()` method (since it might be async - constructors can't be async)
+    // Note: Using try..catch instead of `.init().catch()`, since the init method may not be set as async from the user.
     try {
       await new plugin[Object.keys(plugin)[0]]({file, data}).init();
     }
