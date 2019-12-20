@@ -6,11 +6,11 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
+// const cwd = process.cwd();
 const chalk = require('chalk');
-const fs = require('fs-extra');
-const utils = require('../utils/util/util.js');
+// const fs = require('fs-extra');
 const Logger = require('../utils/logger/logger.js');
+const Util = require('../utils/util/util.js');
 
 // Config
 const {distPath,srcPath} = require('../utils/config/config.js');
@@ -33,6 +33,12 @@ class ReplaceSrcPathForDev {
     this.allowType = allowType;
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
+
+    // Store holder for total # of matches
+    this.total = 0;
+
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
   }
 
   // INIT
@@ -40,8 +46,11 @@ class ReplaceSrcPathForDev {
   // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
   async init() {
     // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType(this.opts);
+    const allowed = Util.isAllowedType(this.opts);
     if (!allowed) return;
+    
+    // START LOGGING
+    this.startLog();
 
     // Set regex and do matching
     const { file } = this;
@@ -52,6 +61,9 @@ class ReplaceSrcPathForDev {
     // By default, this is `src`. Therefore, given a css path like `/src/css/ex.css` we
     // want to slice off the leading `/` and then `src`, which is 4 characters total (`srcPath.length+1`)
     if (matches) this.file.src = this.replacePath({file, matches});
+
+    // END LOGGING
+    this.endLog();
   }
 
 
@@ -72,11 +84,33 @@ class ReplaceSrcPathForDev {
     matches.forEach((m,i) => {
       newPath = m.slice(srcPath.length+1);
       file.src = file.src.replace(m, newPath);
-      // Show terminal message
-      Logger.success(`/${file.path} - Replaced [${m.slice(0, -2)}]: ${ chalk.green(newPath.slice(0, -2)) }`);
     });
     return file.src;
   }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(chalk.magenta('Replacing /src paths in @import calls'));
+    // Start timer
+    this.timer.start();
+  }
+
+  endLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    if (this.total > 0) this.loading.stop(`Removed ${chalk.magenta(this.total)} /src instances ${this.timer.end()}`);
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
+  }
+  
   
   // EXPORT WRAPPER
   // -----------------------------
