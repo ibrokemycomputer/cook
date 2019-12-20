@@ -137,7 +137,7 @@ class Build {
       // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
       // Since we don't inline in 'development' mode, we need to remove `/src` paths
       // because `/src` doesn't exist in `/dist`
-      replaceSrcPathForDev({file, allowType: ['.css','.html']});
+      // replaceSrcPathForDev({file, allowType: ['.css','.html']});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});

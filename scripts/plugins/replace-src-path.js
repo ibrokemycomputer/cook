@@ -56,6 +56,8 @@ class ReplaceSrcPathForDev {
     const { file } = this;
     const targetRegex = new RegExp(`\(\/${srcPath}.+(?=\))`, 'gim');
     const matches = file.src.match(targetRegex);
+    // Store # of matches for logging
+    this.total = matches.length;
     // For each found match, replace it by slicing off the first X characters from the path,
     // based on the length of the `src` directory name set in config `config/main.js` file.
     // By default, this is `src`. Therefore, given a css path like `/src/css/ex.css` we
@@ -110,7 +112,7 @@ class ReplaceSrcPathForDev {
     // If no matches found, stop logger but don't show line in terminal
     else this.loading.kill();
   }
-  
+
   
   // EXPORT WRAPPER
   // -----------------------------
