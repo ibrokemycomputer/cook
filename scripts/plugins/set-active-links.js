@@ -31,7 +31,7 @@ class SetActiveLinks {
     this.excludePaths = excludePaths;
 
     // Store holder for total # of replaced items
-    this.total = 0;
+    this.total = { active:0, activeParent:0 };
 
     // Init terminal logging
     if (process.env.LOGGER) Util.initLogging.call(this);
@@ -97,6 +97,8 @@ class SetActiveLinks {
     if (isAttribute) link.setAttribute(`data-${Util.attr.active}`,'');
     // Or set as a class value
     else link.classList.add(Util.attr.active);
+    // Increment counter for display in terminal logging
+    this.total.active += 1;
   }
 
   /**
@@ -111,6 +113,8 @@ class SetActiveLinks {
     if (isAttribute) link.setAttribute(`data-${Util.attr.activeParent}`,'');
     // Or set as a class value
     else link.classList.add(Util.attr.activeParent);
+    // Increment counter for display in terminal logging
+    this.total.activeParent += 1;
   }
 
   /**
