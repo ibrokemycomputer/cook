@@ -50,7 +50,7 @@ class Bundle {
     this.bundleDistPath = bundle && bundle.distPath || `assets/bundle`;
     
     // Init terminal logging
-    if (process.env.LOGGER) Util.initLogging.call(this);
+    Util.initLogging.call(this);
   }
 
   // BUILD METHODS
@@ -90,7 +90,7 @@ class Bundle {
     if (!this.totalAdd) return;
 
     // START LOGGING
-    this.startLog('Finding Bundled Links and Scripts');
+    this.startLog('Finding Bundled Links and Scripts', true);
 
     // REPLACE INLINE CSS
     this.groupSrcAndInsertBundle(links, 'css');
@@ -285,9 +285,10 @@ class Bundle {
   // -----------------------------
   // Display additional terminal logging when `process.env.LOGGER` enabled
   
-  startLog(label) {
-    // Early Exit: Logging not allowed
-    if (!process.env.LOGGER) return; 
+  startLog(label, isAdd) {
+    // Early Exit: Logging not allowed for in-page bundle collecting (`add()`)
+    // but is for the `build()` process
+    if (!process.env.LOGGER && isAdd) return; 
     // Start Spinner
     this.loading.start(chalk.magenta(label));
     // Start timer
@@ -304,8 +305,6 @@ class Bundle {
   }
 
   endBuildLog() {
-    // Early Exit: Logging not allowed
-    if (!process.env.LOGGER) return;
     // Stop Spinner and Timer
     const plural = this.totalBuild === 1 ? '' : 's';
     if (this.totalBuild > 0) this.loading.stop(`Created ${chalk.magenta(this.totalBuild)} bundle file${plural} ${this.timer.end()}`);
