@@ -24,7 +24,7 @@ class GenerateSitemap {
     this.total = 0;
 
     // Init terminal logging
-    if (process.env.LOGGER) Util.initLogging.call(this);
+    Util.initLogging.call(this);
   }
 
   // INIT
@@ -187,7 +187,6 @@ class GenerateSitemap {
 
   // LOGGING
   // -----------------------------
-  // Display additional terminal logging when `process.env.LOGGER` enabled
   
   startLog() {
     // Start Spinner
