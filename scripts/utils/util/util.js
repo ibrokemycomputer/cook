@@ -482,12 +482,12 @@ async function runFileLoop(files, method) {
   await recurseFiles(0);
   async function recurseFiles(index) {
     const file = files[index];
+    const fileName = file.path || file;
     // For explicit logging, show file name in terminal
-    if (log) console.log(chalk.blue(file))
+    if (log) console.log(chalk.blue(fileName))
     await method(file);
     index += 1;
     // For non-logging (default), update current page in-line in the terminal
-    const fileName = file.path || file;
     if (!log) loading.updateAsPercentage(fileName, index, loading.total, true);
     if (index < loading.total) await recurseFiles(index);
   }
