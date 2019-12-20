@@ -190,8 +190,6 @@ class GenerateSitemap {
   // Display additional terminal logging when `process.env.LOGGER` enabled
   
   startLog() {
-    // Early Exit: Logging not allowed
-    if (!process.env.LOGGER) return; 
     // Start Spinner
     this.loading.start(`Building ${chalk.magenta('sitemap.xml')}`);
     // Start timer
@@ -199,8 +197,6 @@ class GenerateSitemap {
   }
 
   endLog() {
-    // Early Exit: Logging not allowed
-    if (!process.env.LOGGER) return;
     // Stop Spinner and Timer
     if (this.total > 0) this.loading.stop(`Generated ${chalk.magenta(this.total)} site entries ${this.timer.end()}`);
     // If no matches found, stop logger but don't show line in terminal
