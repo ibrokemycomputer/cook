@@ -33,6 +33,9 @@ class CustomPlugins {
     this.data = data;
     this.log = log;
     this.plugins = plugins;
+    
+    // Store # of plugins
+    this.total = plugins && plugins.length || 0;
   }
 
   // INIT
@@ -43,13 +46,17 @@ class CustomPlugins {
     if (!this.plugins) return;
     
     // Show terminal message: Start
-    if (this.log) Logger.persist.header(`\nCustom User Plugins: ${this.log}${Util.countDisplay(this.plugins)}`);
+    // Note: only shown for 'Before' and 'After' cases, not inside the file loop
+    if (this.log && this.total) Logger.persist.header(`\nCustom User Plugins: ${this.log} (${this.total})`);
 
     // Execute each user plugin
     // NOTE: Using recursion instead of `util.promiseAll` since we want
     // each plugin to run schronously. Their internal plugin code can 
     // await async code, though.
     await this.recursePlugins(0); 
+
+    // Add spacing in terminal
+    if (process.env.NODE_ENV !== 'development' && this.log === 'After') console.log('\n');
   }
 
   

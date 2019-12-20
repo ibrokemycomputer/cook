@@ -5,12 +5,12 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
+// const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs').promises;
 const path = require('path');
-const utils = require('../utils/util/util.js');
-const Logger = require('../utils/logger/logger.js');
+// const Logger = require('../utils/logger/logger.js');
+const Util = require('../utils/util/util.js');
 
 // Config
 const {convertPageToDirectory,distPath,srcPath} = require('../utils/config/config.js');
@@ -35,8 +35,14 @@ class ReplaceInclude {
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
 
+    // Store holder for total # of includes
+    this.total = 0;
+
     // Add object to internal store for holding the cached include content
     if (!this.store.cachedIncludes) this.store.cachedIncludes = {};
+
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
   }
 
   // INIT
@@ -44,17 +50,21 @@ class ReplaceInclude {
   // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
   async init() {
     // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType(this.opts);
+    const allowed = Util.isAllowedType(this.opts);
     if (!allowed) return;
     
     // Store string source as traversable DOM
-    let dom = utils.jsdom.dom({src: this.file.src});  
+    let dom = Util.jsdom.dom({src: this.file.src});  
     // Allow `[include]` or `[data-include]` by default
-    const includeSelector = utils.getSelector(utils.attr.include);
+    const includeSelector = Util.getSelector(Util.attr.include);
     const includeItems = dom.window.document.querySelectorAll(includeSelector);
+    this.total = includeItems.length;
 
     // Early Exit: No includes
     if (!includeItems) return;
+    
+    // START LOGGING
+    this.startLog();
 
     // Loop through each found include call and replace with fetched file source
     for (let item of includeItems) {
@@ -62,16 +72,19 @@ class ReplaceInclude {
     }
     
     // Store updated file source
-    this.file.src = utils.setSrc({dom});
+    this.file.src = Util.setSrc({dom});
 
     // TODO: For now, includes cannot include other includes. 
     // This was causing an infinite loop
     // ---
     // Query again for includes. If sub-includes found, run again
-    // dom = utils.jsdom.dom({src: file.src});
-    // const newIncludeSelector = utils.getSelector(utils.attr.include);
+    // dom = Util.jsdom.dom({src: file.src});
+    // const newIncludeSelector = Util.getSelector(Util.attr.include);
     // const newSubIncludes = dom.window.document.querySelectorAll(newIncludeSelector);
     // if (newSubIncludes.length) ReplaceInclude({file, allowType, disallowType});
+
+    // END LOGGING
+    this.endLog();
   }
 
 
@@ -85,7 +98,7 @@ class ReplaceInclude {
    */
   async replaceInclude(el) {
     // If attribute found and it has a path
-    const hasInclude = this.hasAttribute(el, utils.attr.include);
+    const hasInclude = this.hasAttribute(el, Util.attr.include);
     if (hasInclude && hasInclude.path && hasInclude.path.length) {
       try {
         // Init vars
@@ -113,11 +126,9 @@ class ReplaceInclude {
         this.addAttributesToReplacedDOM(el);
         // Remove placeholder element from DOM (`<div include="/includes/xxxx"></div>`)
         el.remove();
-        // Show terminal message
-        Logger.success(`/${distPath}${hasInclude.path} - Replaced [${hasInclude.type}]: ${ chalk.green(includePath.split(distPath)[1]) }`);
       }
       catch (err) {
-        utils.customError(err, `replace-includes.js`);
+        Util.customError(err, `replace-includes.js`);
       }
     }
   }
@@ -158,7 +169,7 @@ class ReplaceInclude {
       return fetchedSrc;
     }
     catch (err) {
-      utils.customKill(`fetchInlineSrc(): ${err}`);
+      Util.customKill(`fetchInlineSrc(): ${err}`);
     }
   }
 
@@ -180,7 +191,7 @@ class ReplaceInclude {
     for (let i=0; i<el.attributes.length; i++) {
       const name = el.attributes[i].name;
       const value = el.attributes[i].value;
-      const isValidAttr = utils.attr.include.indexOf(name) === -1;
+      const isValidAttr = Util.attr.include.indexOf(name) === -1;
       if (isValidAttr) targetEl.setAttribute(name, value);
     }
   }
@@ -212,13 +223,37 @@ class ReplaceInclude {
    */
   hasAttribute(el, attrs) {
     let tmpArr = [];
-    if (typeof attrs === 'string') tmpArr.push({ type: utils.attr.include, path: el.getAttribute(utils.attr.include) });
+    if (typeof attrs === 'string') tmpArr.push({ type: Util.attr.include, path: el.getAttribute(Util.attr.include) });
     else attrs.forEach(a => tmpArr.push({ type: a, path: el.getAttribute(a) }));
     // Filter out falsey
     tmpArr = tmpArr.filter(a => a.path);
     // Return boolean
     return tmpArr[0] || false;
   }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(chalk.magenta('Replacing Includes'));
+    // Start timer
+    this.timer.start();
+  }
+
+  endLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    if (this.total > 0) this.loading.stop(`Replaced ${chalk.magenta(this.total)} includes ${this.timer.end()}`);
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
+  }
+  
   
   // EXPORT WRAPPER
   // -----------------------------

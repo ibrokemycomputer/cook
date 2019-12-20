@@ -5,8 +5,9 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
-const utils = require('../utils/util/util.js');
+// const cwd = process.cwd();
+const chalk = require('chalk');
+const Util = require('../utils/util/util.js');
 
 // Config
 const {distPath, activeLink} = require('../utils/config/config.js');
@@ -28,6 +29,12 @@ class SetActiveLinks {
     this.allowType = allowType;
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
+
+    // Store holder for total # of replaced items
+    this.total = 0;
+
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
   }
 
   // INIT
@@ -35,14 +42,17 @@ class SetActiveLinks {
   // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
   async init() {
     // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType(this.opts);
+    const allowed = Util.isAllowedType(this.opts);
     if (!allowed) return;
+    
+    // START LOGGING
+    this.startLog();
 
     // Destructure options
     const { file } = this;
 
     // Make source traversable with JSDOM
-    let dom = utils.jsdom.dom({src: file.src});
+    let dom = Util.jsdom.dom({src: file.src});
 
     // Find <a> tags and add active state 
     // if their [href] matches the current page url
@@ -51,7 +61,10 @@ class SetActiveLinks {
     $links.forEach((link,i) => this.setActive({file, link}));
 
     // Store updated file source
-    file.src = utils.setSrc({dom});
+    file.src = Util.setSrc({dom});
+
+    // END LOGGING
+    this.endLog();
   }
 
   // HELPER METHODS
@@ -65,8 +78,8 @@ class SetActiveLinks {
    * @private
    */
   setActive({file, link}) {
-    const currPath = utils.getFileName(file.path, distPath);
-    const linkPath = utils.getFileName(link.href, distPath);
+    const currPath = Util.getFileName(file.path, distPath);
+    const linkPath = Util.getFileName(link.href, distPath);
     const isParent = this.linkIsParent(file.path, linkPath);
     if (linkPath === currPath) this.setActiveLink(link);
     else if (isParent) this.setParentActiveLink(link);
@@ -81,9 +94,9 @@ class SetActiveLinks {
     // Use user-defined states or a default
     const isAttribute = activeLink && (activeLink.type === 'attr' || activeLink.type === 'attribute');
     // If user specified using an attribute, set the state via attribute
-    if (isAttribute) link.setAttribute(`data-${utils.attr.active}`,'');
+    if (isAttribute) link.setAttribute(`data-${Util.attr.active}`,'');
     // Or set as a class value
-    else link.classList.add(utils.attr.active);
+    else link.classList.add(Util.attr.active);
   }
 
   /**
@@ -95,9 +108,9 @@ class SetActiveLinks {
     // Use user-defined states or a default
     const isAttribute = activeLink && (activeLink.type === 'attr' || activeLink.type === 'attribute');
     // If user specified using an attribute, set the state via attribute
-    if (isAttribute) link.setAttribute(`data-${utils.attr.activeParent}`,'');
+    if (isAttribute) link.setAttribute(`data-${Util.attr.activeParent}`,'');
     // Or set as a class value
-    else link.classList.add(utils.attr.activeParent);
+    else link.classList.add(Util.attr.activeParent);
   }
 
   /**
@@ -116,6 +129,32 @@ class SetActiveLinks {
     const isActivePage = linkPath === pagePathParts[pagePathParts.length - 1];
     const isHierarchyPage = pagePathParts.indexOf(linkPath) > -1;
     return !isActivePage && isHierarchyPage;
+  }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(chalk.magenta('Adding Link Active States'));
+    // Start timer
+    this.timer.start();
+  }
+
+  endLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    const {active,activeParent} = this.total;
+    if (active > 0 || activeParent > 0) {
+      this.loading.stop(`Set active links: ${chalk.magenta(active)} active and ${chalk.magenta(activeParent)} parent ${this.timer.end()}`);
+    }
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
   }
 
 
