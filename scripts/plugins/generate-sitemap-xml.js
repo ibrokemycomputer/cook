@@ -2,12 +2,11 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
-// const chalk = require('chalk');
+// const cwd = process.cwd();
+const chalk = require('chalk');
 const fs = require('fs-extra');
-// const path = require('path');
-const utils = require('../utils/util/util.js');
 const Logger = require('../utils/logger/logger.js');
+const Util = require('../utils/util/util.js');
 
 // CONFIG
 const {distPath,sitemap,srcPath} = require('../utils/config/config.js');
@@ -20,7 +19,13 @@ const {distPath,sitemap,srcPath} = require('../utils/config/config.js');
  * Is one of the last build processes since we want to get all new, dynamically-generated pages and their final path locations.
  */
 class GenerateSitemap {
-  constructor() {}
+  constructor() {
+    // Store total # of file entries generated
+    this.total = 0;
+
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
+  }
 
   // INIT
   // -----------------------------
@@ -29,9 +34,16 @@ class GenerateSitemap {
     // Early Exit: No user-defined site domain in `/config/main.js`
     if (!sitemap || !sitemap.url || !sitemap.url.length) return;
     
+    // ADD TERMINAL SECTION HEADING
+    Logger.persist.header(`\nCreate /sitemap.xml`);
+
+    // START LOGGING
+    this.startLog();
+
     try {
       // Get directory and .html file paths from `/dist`
       let files = await fs.readdir(distPath);
+      this.total = files.length;
       // Format file paths for XML
       files = this.formatFilesForXML(files);
       // Filter out unwanted entry paths
@@ -42,9 +54,12 @@ class GenerateSitemap {
       await fs.writeFile(`${distPath}/sitemap.xml`, xmlSrc);
     }
     catch (e) {
-      utils.customError(e, 'Generate sitemap.xml');
+      Util.customError(e, 'Generate sitemap.xml');
       Logger.error(`Requires /${distPath} directory - please run the build process first`);
     }
+    
+    // END LOGGING
+    this.endLog();
   }
 
   // PROCESS METHODS
@@ -116,9 +131,9 @@ class GenerateSitemap {
     const allowedExt = ['html'];
     const excludedPaths = [];
     // Get files in `/dist`
-    files = utils.getPaths(distPath, distPath, excludedPaths);
+    files = Util.getPaths(distPath, distPath, excludedPaths);
     // Get only the allowed files by extension (.css, .html)
-    files = files.filter(fileName => utils.isExtension(fileName, allowedExt));
+    files = files.filter(fileName => Util.isExtension(fileName, allowedExt));
     // Format for xml: Remove `/dist`
     files = files.map(fileName => fileName.split(distPath)[1]);
     // Format for xml: Remove `filename`
@@ -167,6 +182,29 @@ class GenerateSitemap {
     const last = filePathSplit.pop();
     if (last !== 'index.html') filePathSplit[filePathSplit.length] = last;
     return filePathSplit.join('/');
+  }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(`Building ${chalk.magenta('sitemap.xml')}`);
+    // Start timer
+    this.timer.start();
+  }
+
+  endLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    if (this.total > 0) this.loading.stop(`Generated ${chalk.magenta(this.total)} site entries ${this.timer.end()}`);
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
   }
   
   

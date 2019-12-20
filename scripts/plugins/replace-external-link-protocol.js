@@ -10,8 +10,8 @@
 // -----------------------------
 const cwd = process.cwd();
 const chalk = require('chalk');
-const utils = require('../utils/util/util.js');
 const Logger = require('../utils/logger/logger.js');
+const Util = require('../utils/util/util.js');
 
 // USER 'MAIN.JS' CONFIG
 const {
@@ -36,6 +36,12 @@ class ReplaceExternalLinkProtocol {
     this.allowType = allowType;
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
+
+    // Store holder for total # of replaced items
+    this.total = 0;
+
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
   }
 
   // INIT
@@ -45,14 +51,17 @@ class ReplaceExternalLinkProtocol {
     // Early Exit: User opted out of this plugin
     if (!replaceExternalLinkProtocol.enabled) return;
     // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType(this.opts);
+    const allowed = Util.isAllowedType(this.opts);
     if (!allowed) return;
+    
+    // START LOGGING
+    this.startLog();
 
     // Destructure options
     const { file } = this;
 
     // Make source traversable with JSDOM
-    let dom = utils.jsdom.dom({src: file.src});
+    let dom = Util.jsdom.dom({src: file.src});
 
     // Find <a>, <link>, and <script> tags
     const $link = dom.window.document.querySelectorAll('link');
@@ -66,7 +75,10 @@ class ReplaceExternalLinkProtocol {
     if ($script) $script.forEach(el => this.replaceMissingProtocol({file, el}));
     
     // Store updated file source
-    this.file.src = utils.setSrc({dom});
+    this.file.src = Util.setSrc({dom});
+
+    // END LOGGING
+    this.endLog();
   }
 
   // HELPER METHODS
@@ -88,12 +100,15 @@ class ReplaceExternalLinkProtocol {
     // Example: Someone adds an old-school anchor jump point: `<a id="jump-point"></a>`
     if (!srcType || srcType === '') return;
     // Get href path
-    const linkPath = utils.getFileName(srcType, distPath);
+    const linkPath = Util.getFileName(srcType, distPath);
     // Only replace for `www` and `cdn` instances, unless user defined their own
-    const domainTargets = replaceExternalLinkProtocol.match || utils.replaceExternalLinkProtocolDefaults;
+    const domainTargets = replaceExternalLinkProtocol.match || Util.replaceExternalLinkProtocolDefaults;
     const isTargetMatch = domainTargets.indexOf(linkPath) > -1;
     const pathType = el.href ? 'href' : 'src';
+    // Update path
     if (isTargetMatch) this.replaceExternal(file, el, pathType);
+    // Increment total counter
+    if (isTargetMatch) this.total += 1;
   }
 
   /**
@@ -113,8 +128,32 @@ class ReplaceExternalLinkProtocol {
     if (linkPathSplit.indexOf('localhost') === -1) return;
     el[type] = `http://${linkPathSplit[linkPathSplit.length-1]}`;
     // Show terminal message
-    Logger.success(`/${file.path} - Added 'http://' to [href="${linkPathSplit[linkPathSplit.length-1]}"]: ${ chalk.green(el[type]) }`);
+    // Logger.success(`/${file.path} - Added 'http://' to [href="${linkPathSplit[linkPathSplit.length-1]}"]: ${ chalk.green(el[type]) }`);
   }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(chalk.magenta('Replacing Missing Link Protocol'));
+    // Start timer
+    this.timer.start();
+  }
+
+  endLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    if (this.total > 0) this.loading.stop(`Replaced ${chalk.magenta(this.total)} missing link protocols ${this.timer.end()}`);
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
+  }
+
   
   // EXPORT WRAPPER
   // -----------------------------

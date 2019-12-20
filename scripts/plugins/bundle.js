@@ -13,8 +13,8 @@ const chalk = require('chalk');
 const fs = require('fs-extra');
 const minifyCss = require('clean-css');
 const minifyEs = require('uglify-es');
-const utils = require('../utils/util/util.js');
 const Logger = require('../utils/logger/logger.js');
+const Util = require('../utils/util/util.js');
 
 // Config
 const {bundle,srcPath,distPath} = require('../utils/config/config.js');
@@ -41,8 +41,16 @@ class Bundle {
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
 
+    // Store # of found elements to bundle
+    this.totalAdd = 0;
+    // Store # of created bundle files
+    this.totalBuild = 0;
+
     // Use user-defined paths or set defaults for where to create the bundled files
     this.bundleDistPath = bundle && bundle.distPath || `assets/bundle`;
+    
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
   }
 
   // BUILD METHODS
@@ -63,22 +71,26 @@ class Bundle {
     // Early Exit: Running locally and `BUNDLE=true` not set
     if (process.env.NODE_ENV === 'development' && !process.env.BUNDLE) return;
     // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType(this.opts);
+    const allowed = Util.isAllowedType(this.opts);
     if (!allowed) return;
 
     // Destructure options
     const { file } = this;
 
     // Make source traversable with JSDOM
-    const dom = utils.jsdom.dom({src: file.src});
+    const dom = Util.jsdom.dom({src: file.src});
     const document = dom.window.document;
     
     // Find `<link>` or `<script>` tags with the `[data-bundle]` or `[bundle]` attributes
     const links = document.querySelectorAll('link[data-bundle], link[bundle]');
     const scripts = document.querySelectorAll('script[data-bundle], script[bundle]');
+    this.totalAdd = links.length + scripts.length;
     
     // Early Exit: No targets found
-    if (!links.length && !scripts.length) return;
+    if (!this.totalAdd) return;
+
+    // START LOGGING
+    this.startLog('Finding Bundled Links and Scripts');
 
     // REPLACE INLINE CSS
     this.groupSrcAndInsertBundle(links, 'css');
@@ -86,7 +98,10 @@ class Bundle {
     this.groupSrcAndInsertBundle(scripts, 'js');
 
     // Store updated file source
-    file.src = utils.setSrc({dom});
+    file.src = Util.setSrc({dom});
+    
+    // END LOGGING
+    this.endAddLog();
   }
 
   /**
@@ -97,13 +112,24 @@ class Bundle {
     // Get file references
     const cssGroups = this.store.bundle.css;
     const jsGroups = this.store.bundle.js;
+    // Store # of files that will be created
+    this.totalBuild = Object.keys(cssGroups).length + Object.keys(jsGroups).length;
+    
+    // ADD TERMINAL SECTION HEADING
+    if (this.totalBuild > 0) Logger.persist.header(`\nCreate Bundle Files`);
+
+    // START LOGGING
+    this.startLog('Creating Bundled Files');
 
     // Create bundle directory if it doesn't already exist
-    await utils.createDirectory(`${distPath}/${this.bundleDistPath}`);
+    await Util.createDirectory(`${distPath}/${this.bundleDistPath}`);
 
     // Build bundle files
     await this.buildBundles(cssGroups, 'css');
     await this.buildBundles(jsGroups, 'js');
+    
+    // END LOGGING
+    this.endBuildLog();
   }
 
 
@@ -239,7 +265,7 @@ class Bundle {
       return src;
     }
     catch (err) {
-      utils.customKill(err, `Error fetching the source from: ${path}`);
+      Util.customKill(err, `Error fetching the source from: ${path}`);
     }
   }
 
@@ -252,6 +278,39 @@ class Bundle {
     const config = { inline: ['none'] };
     // Minify source
     return new minifyCss(config).minify(src).styles;
+  }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog(label) {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(chalk.magenta(label));
+    // Start timer
+    this.timer.start();
+  }
+
+  endAddLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    if (this.totalAdd > 0) this.loading.stop(`Found ${chalk.magenta(this.totalAdd)} bundle targets ${this.timer.end()}`);
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
+  }
+
+  endBuildLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    const plural = this.totalBuild === 1 ? '' : 's';
+    if (this.totalBuild > 0) this.loading.stop(`Created ${chalk.magenta(this.totalBuild)} bundle file${plural} ${this.timer.end()}`);
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
   }
     
 

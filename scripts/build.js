@@ -155,20 +155,16 @@ class Build {
     }
 
     // PLUGIN: Create `sitemap.xml` in the created `/dist` folder
-    generateSitemap();
+    await generateSitemap();
 
     // PLUGIN: Build and create bundled file
     await bundleBuild({store});
 
     // CUSTOM PLUGINS: Run custom user plugins after file loop
     await customPlugins({store, data, plugins: plugins.after, log: 'After' });
-
-    // PLUGIN: Remove /dist/includes after build
-    // cleanupDist();
   }
 
 };
 
 // Run build
-const build = new Build();
-build.init();
+(async () => await new Build().init())();

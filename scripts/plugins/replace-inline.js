@@ -5,11 +5,11 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
+// const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
-const utils = require('../utils/util/util.js');
-const Logger = require('../utils/logger/logger.js');
+// const Logger = require('../utils/logger/logger.js');
+const Util = require('../utils/util/util.js');
 
 // Config
 const {distPath} = require('../utils/config/config.js');
@@ -33,8 +33,14 @@ class ReplaceInline {
     this.disallowType = disallowType;
     this.excludePaths = excludePaths;
 
+    // Store holder for total # of replaced inline elements
+    this.total = 0;
+
     // Add object to internal store for holding the cached include content
     if (!this.store.cachedInline) this.store.cachedInline = {};
+
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
   }
 
   // INIT
@@ -42,7 +48,7 @@ class ReplaceInline {
   // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
   async init() {
     // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType(this.opts);
+    const allowed = Util.isAllowedType(this.opts);
     if (!allowed) return;
     // Early Exit: Do not replace files locally
     if (process.env.NODE_ENV === 'development') return;
@@ -51,13 +57,17 @@ class ReplaceInline {
     const { file } = this;
 
     // Make source traversable with JSDOM
-    let dom = utils.jsdom.dom({src: file.src});
+    let dom = Util.jsdom.dom({src: file.src});
 
     // Store all <link inline> and <scripts inline>
-    const inlineLinkSelector = utils.getSelector(utils.attr.inline, 'link');
-    const inlineScriptSelector = utils.getSelector(utils.attr.inline, 'script');
+    const inlineLinkSelector = Util.getSelector(Util.attr.inline, 'link');
+    const inlineScriptSelector = Util.getSelector(Util.attr.inline, 'script');
     const links = dom.window.document.querySelectorAll(inlineLinkSelector);
     const scripts = dom.window.document.querySelectorAll(inlineScriptSelector);
+    this.total = links.length + scripts.length;
+
+    // START LOGGING
+    this.startLog();
 
     // REPLACE INLINE CSS
     await this.replaceLinks({links, file});
@@ -65,7 +75,10 @@ class ReplaceInline {
     await this.replaceScripts({scripts, file});
 
     // Store updated file source
-    file.src = utils.setSrc({dom});
+    file.src = Util.setSrc({dom});
+
+    // END LOGGING
+    this.endLog();
   }
 
 
@@ -127,7 +140,7 @@ class ReplaceInline {
     el.insertAdjacentHTML('beforebegin', `<${tagType}>${content}</${tagType}>`);
     el.remove();
     // Show terminal message
-    Logger.success(`/${this.file.path} - Replaced link[${utils.attr.inline}]: ${ chalk.green(formatPath) }`);
+    // Logger.success(`/${this.file.path} - Replaced link[${Util.attr.inline}]: ${ chalk.green(formatPath) }`);
   }
 
   /**
@@ -147,7 +160,7 @@ class ReplaceInline {
       return fetchedSrc;
     }
     catch (err) {
-      utils.customKill(`fetchInlineSrc(): ${err}`);
+      Util.customKill(`fetchInlineSrc(): ${err}`);
     }
   }
 
@@ -167,6 +180,29 @@ class ReplaceInline {
   formatPath(path) {
     const pathSplit = path.split('https://localhost');
     return pathSplit[pathSplit.length - 1];
+  }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(chalk.magenta('Replacing Inlines'));
+    // Start timer
+    this.timer.start();
+  }
+
+  endLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    if (this.total > 0) this.loading.stop(`Replaced ${chalk.magenta(this.total)} inlines ${this.timer.end()}`);
+    // If no matches found, stop logger but don't show line in terminal
+    else this.loading.kill();
   }
     
 

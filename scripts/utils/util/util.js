@@ -51,7 +51,6 @@ module.exports = {
   addDynamicPage,
   attr,
   convertExternalLinks,
-  countDisplay,
   createDirectory,
   customError,
   customKill,
@@ -64,6 +63,7 @@ module.exports = {
   getFilePath,
   getPaths,
   getSelector,
+  initLogging,
   hasExtension,
   isAllowedType,
   isExtension,
@@ -154,16 +154,6 @@ function convertToKebab(str) {
   str = str.toLowerCase();
   // Return formatted string
   return str;
-}
-
-/**
- * @description Return array length string formatted for display or empty string if array is empty
- * @param {Array} arrayToCount - The array to find it length for display
- * @example Returns either `(5)` or '' depending on the length of the test array (assuming length was `5`)
- * @private
- */ 
-function countDisplay(arrayToCount) {
-  return arrayToCount.length ? ' (' + arrayToCount.length + ')' : '';
 }
 
 /**
@@ -361,6 +351,17 @@ function getSelector(attrs, el = '') {
 }
 
 /**
+ * @description Initializes a new Spinner and Timer instance on the executing scope (this)
+ * Note: Initialization must call the executing scope via `.call(this)`
+ * @example Util.initLogging.call(this)
+ * @private
+ */
+function initLogging() {
+  this.loading = new Spinner();
+  this.timer = new Timer();
+}
+
+/**
  * @description Check if path string has extension. Protects against directory names with `.` characters
  * @property {String} str - Path string to test
  * @returns {Boolean}
@@ -463,11 +464,15 @@ function promiseAll(arr, method, cb, pageLabel) {
 async function runFileLoop(files, method) {
   // Early Exit: No allowed files given
   if (!files || !files.length) return;
+
+  // Is explicit logging enabled via environment flag?
+  const log = process.env.LOGGER;
+
   // Show terminal message: Start
   Logger.persist.header(`\nModify Files`);
   // Start spinner message
   const loading = new Spinner();
-  loading.start(`Fetching allowed files`);
+  if (!log) loading.start(`Fetching allowed files`);
   loading.total = files.length;
 
   // Start timer
@@ -477,14 +482,18 @@ async function runFileLoop(files, method) {
   await recurseFiles(0);
   async function recurseFiles(index) {
     const file = files[index];
+    // For explicit logging, show file name in terminal
+    if (log) console.log(chalk.blue(file))
     await method(file);
     index += 1;
+    // For non-logging (default), update current page in-line in the terminal
     const fileName = file.path || file;
-    loading.updateAsPercentage(fileName, index, loading.total, true);
+    if (!log) loading.updateAsPercentage(fileName, index, loading.total, true);
     if (index < loading.total) await recurseFiles(index);
   }
   
   // End timer
+  if (log) console.log(chalk.gray('\n-----'));
   loading.stop(`Files Modified (${loading.total}) ${timer.end()}`);
 }
 

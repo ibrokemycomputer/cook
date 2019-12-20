@@ -5,14 +5,14 @@
 
 // REQUIRE
 // -----------------------------
-const cwd = process.cwd();
+// const cwd = process.cwd();
 const chalk = require('chalk');
 const fs = require('fs-extra');
 const minifyCss = require('clean-css');
 const minifyHtml = require('html-minifier').minify;
 const minifyEs = require('uglify-es');
-const utils = require('../utils/util/util.js');
-const Logger = require('../utils/logger/logger.js');
+// const Logger = require('../utils/logger/logger.js');
+const Util = require('../utils/util/util.js');
 
 // Config
 const {srcPath,distPath,minifyHtmlConfigCustom} = require('../utils/config/config.js');
@@ -53,6 +53,9 @@ class MinifySrc {
 
     // Minfiy JS
     this.minifyJsConfig = {};
+
+    // Init terminal logging
+    if (process.env.LOGGER) Util.initLogging.call(this);
   }
 
   // INIT
@@ -60,12 +63,15 @@ class MinifySrc {
   // Note: `process.env.DEV_CHANGED_PAGE` is defined in `browserSync.watch()` in dev.js
   async init() {
     // Early Exit: File type not allowed
-    const allowed = utils.isAllowedType(this.opts);
+    const allowed = Util.isAllowedType(this.opts);
     if (!allowed) return;
     // Early Exit: Don't minify in development
     if (process.env.NODE_ENV === 'development') return;
     // Early Exit: User opted out (example, unminify in stage)
     if (process.env.MINIFY === 'false') return;
+    
+    // START LOGGING
+    this.startLog();
 
     // Destructure options
     const { file } = this;
@@ -81,8 +87,8 @@ class MinifySrc {
     // Store new source
     file.src = newSrc;
 
-    // Show terminal message
-    Logger.success(`/${file.path} - Minified`);
+    // END LOGGING
+    this.endLog();
   }
 
 
@@ -155,7 +161,7 @@ class MinifySrc {
    * @private
    */
   minifyInline(file, selector, type) {
-    const dom = utils.jsdom.dom({src: file.src});
+    const dom = Util.jsdom.dom({src: file.src});
     const group = dom.window.document.querySelectorAll(selector);
     let minifiedSrc;
     group.forEach((el,i) => {
@@ -166,9 +172,30 @@ class MinifySrc {
       el.textContent = minifiedSrc;
     });
     // Store updated file source
-    file.src = utils.setSrc({dom});
+    file.src = Util.setSrc({dom});
     // Return updated file source
     return file.src;
+  }
+  
+
+  // LOGGING
+  // -----------------------------
+  // Display additional terminal logging when `process.env.LOGGER` enabled
+  
+  startLog(total) {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return; 
+    // Start Spinner
+    this.loading.start(chalk.magenta('Minifying source'));
+    // Start timer
+    this.timer.start();
+  }
+
+  endLog() {
+    // Early Exit: Logging not allowed
+    if (!process.env.LOGGER) return;
+    // Stop Spinner and Timer
+    this.loading.stop(`Minified source ${this.timer.end()}`);
   }
   
   

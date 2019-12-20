@@ -56,6 +56,15 @@ class Spinner {
     cliCursor.show();
   }
 
+  // Like `stop()`, this finishes the sequence (clears interval),
+  // but displays nothing on the line in the terminal.
+  // Great for conditionals...show final display if plugin found matches or not
+  kill() {
+    this.clearLine();
+    clearInterval(this.interval);
+    cliCursor.show();
+  }
+
   update(label, color) {
     // Set spinner color, if provided
     if (color) this.color = color;
