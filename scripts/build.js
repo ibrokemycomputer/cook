@@ -26,7 +26,6 @@ const minifySrc = require('./plugins/minify-src');
 const replaceInclude = require('./plugins/replace-include.js');
 const replaceInline = require('./plugins/replace-inline.js');
 const replaceMissingExternalLinkProtocol = require('./plugins/replace-external-link-protocol.js');
-const replaceSrcPathForDev = require('./plugins/replace-src-path.js');
 const replaceTemplateStrings = require('./plugins/replace-template-strings.js');
 const setActiveLinks = require('./plugins/set-active-links.js');
 
@@ -133,11 +132,6 @@ class Build {
 
       // PLUGIN: Babelify standalone JS files
       // babelify({file, allowType: ['.js','.html']});
-
-      // PLUGIN: `/src` is needed for `@import url()` calls when inlining source
-      // Since we don't inline in 'development' mode, we need to remove `/src` paths
-      // because `/src` doesn't exist in `/dist`
-      // replaceSrcPathForDev({file, allowType: ['.css','.html']});
       
       // PLUGIN: Find `<a>` tags whose [href] value matches the current page (link active state)
       setActiveLinks({file, allowType: ['.html']});
