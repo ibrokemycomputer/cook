@@ -33,8 +33,8 @@ const jsdom = {
 // ----------------------------------
 // Attribute values 
 const attr = {
-  active: convertToKebab(activeLink && activeLink.activeState) || 'active',
-  activeParent: convertToKebab(activeLink && activeLink.parentState) || 'active-parent',
+  active: convertToKebab(activeLink && activeLink.activeState, 'space') || 'active',
+  activeParent: convertToKebab(activeLink && activeLink.parentState, 'space') || 'active-parent',
   include: includeAttr ? [includeAttr, `data-${includeAttr}`] : ['include', 'data-include'],
   inline: inlineAttr ? [inlineAttr, `data-${inlineAttr}`] : ['inline', 'data-inline'],
 }
@@ -51,6 +51,9 @@ module.exports = {
   addDynamicPage,
   attr,
   convertExternalLinks,
+  convertToCamel,
+  convertToCapSpaces,
+  convertToKebab,
   createDirectory,
   customError,
   customKill,
@@ -139,6 +142,113 @@ function addDynamicPage(path,src,store) {
  */ 
 function convertExternalLinks(source) {
   return source.replace(/href="www/gi, 'href="http://www');
+}
+
+/**
+ * @description Convert 'single-spaced words' or 'kebab' strings to 'camel case'.
+ * @param {String} str - The string to convert.
+ * @param {String} type - The format the original string is in: single-spaced words, kebab.
+ */
+function convertToCamel(str, type) {
+  if (!str) return;
+
+  switch (type) {
+    case 'kebab': return kebab();
+    case 'space': return spacedWords();
+    default: return str;
+  }
+  
+  function kebab() {
+    const splitOnDash = str.split('-');
+    // Return formatted string
+    return format(splitOnDash);
+  }
+
+  function spacedWords() {
+    const splitOnSpace = str.split(' ');
+    // Lowercase words to normalize
+    const lowercase = splitOnSpace.map(t => t.toLowerCase());
+    // Return formatted string
+    return format(lowercase);
+  }
+
+  // ---
+
+  function format(arr) {
+    // Capitalize each word, but the first
+    const capitalize = arr.map((t,i) => i === 0 ? t : `${t.charAt(0).toUpperCase()}${t.substring(1)}`);
+    // Join words
+    return capitalize.join('');
+  }
+}
+
+/**
+ * @description Convert 'camel case' or 'kebab' strings to space-separated, capitlized words.
+ * @param {String} str - The string to convert.
+ * @param {String} type - The format the original string is in: camel case, kebab.
+ */
+function convertToCapSpaces(str, type) {
+  if (!str) return;
+
+  switch (type) {
+    case 'camel': return camel();
+    case 'kebab': return kebab();
+    default: return str;
+  }
+
+  function camel() {
+    // Split string into array on each found capitalized word
+    const splitOnCaps = str.match(/([A-Z]?[^A-Z]*)/g).slice(0,-1);
+    // Capitalize the first word
+    splitOnCaps[0] = `${splitOnCaps[0].charAt(0).toUpperCase()}${splitOnCaps[0].substring(1)}`;
+    // Join the words with spaces
+    return splitOnCaps.join(' ');
+  }
+  
+  function kebab() {
+    const splitOnDash = str.split('-');
+    // Capitalize each word
+    const capitalize = splitOnDash.map(t => `${t.charAt(0).toUpperCase()}${t.substring(1)}`)
+    // Return words joined with a space
+    return capitalize.join(' ');
+  }
+}
+
+/**
+ * @description Convert 'single-spaced words' or 'camel case' strings to 'kebab'.
+ * @param {String} str - The string to convert.
+ * @param {String} type - The format the original string is in: single-spaced words, camel case.
+ */
+function convertToKebab(str, type) {
+  if (!str) return;
+
+  switch (type) {
+    case 'camel': return camel();
+    case 'space': return spacedWords();
+    default: return str;
+  }
+  
+  function camel() {
+    // Split string into array on each found capitalized word
+    const splitOnCaps = str.match(/([A-Z]?[^A-Z]*)/g).slice(0,-1);
+    // Return formatted string
+    return format(splitOnCaps);
+  }
+
+  function spacedWords() {
+    const splitOnSpace = str.split(' ');
+    // Return formatted string
+    return format(splitOnSpace);
+  }
+
+  // ---
+
+  function format(arr) {
+    // lowercase each word
+    const lowercase = arr.map(t => t.toLowerCase());
+    // Join words with a dash
+    return lowercase.join('-');
+  }
 }
 
 /**
