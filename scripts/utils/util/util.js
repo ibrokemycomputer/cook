@@ -252,21 +252,6 @@ function convertToKebab(str, type) {
 }
 
 /**
- * @description Convert string to `Kebab` case for use as attributes, class values, etc.
- * @param {String} str - The string to convert to Kebab-case.
- */
-function convertToKebab(str) {
-  // Early Exit: String is not defined
-  if (!str || typeof str !== 'string') return null;
-  // Convert all spaces to dashes
-  str = str.replace(/ /g, '-');
-  // Lowercase
-  str = str.toLowerCase();
-  // Return formatted string
-  return str;
-}
-
-/**
  * @description Create directory hierarchy, if it doesn't already exist
  * @param {String} path - The path to directory to create
  * @private
