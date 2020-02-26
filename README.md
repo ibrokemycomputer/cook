@@ -113,12 +113,13 @@ Out-of-the-box, no internal build processes use this, but you are welcome to use
   * Adds missing `http://` protocol to external links to avoid them being treated as internal, relative links
   * Replace include placeholders (`[data-include]`) with their target source
   * Replace inline placeholders (`[data-inline]`) with their target external source
-  * Set `<a>` tags whose `[href]` matches the current page as 'active' (`[data-active]`)
+  * Set <a> tags whose `[href]` matches the current-page url as 'active' (`class="active"`)
+  * Set <a> tags whose `[href]` includes part of the current-page url as 'active' (`class="active-parent"`)
   * Store link/script files marked for bundling (`[bundle]`), and replace their 'old' DOM elements with the new bundled-file call
-  * Minify the page source (production environments)
-  * ~~Optimizes images (Todo)~~
-  * ~~Optimizes SVG (Todo)~~
-  * ~~Uses Babel to convert ES6 to ES5 (Todo)~~
+  * Minify the page source (production environments only)
+  * ~~Optimizes images~~ (Todo)
+  * ~~Optimizes SVG~~ (Todo)
+  * ~~Uses Babel to convert ES6 to ES5~~ (Todo)
 * Creates `sitemap.xml` file in `/dist`
 * Create the bundled `.css` and `.js` files specified in the file loop.
 * Runs any custom-user `after` plugins (runs once)
