@@ -17,7 +17,6 @@ const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 
 // Config
-// Config
 const {customImgDir, customImgTypes, distPath, svgOpts} = require('../utils/config/config.js');
 
 // PLUGIN OPTIONS

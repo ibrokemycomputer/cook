@@ -68,6 +68,8 @@ class Bundle {
    * as well as inserting the new DOM element and removing all the old DOM elements.
    */
   add() {
+    // Early Exit: User disabled bundling
+    if (bundle === false || bundle.enabled === false) return;
     // Early Exit: Running locally and `BUNDLE=true` not set
     if (process.env.NODE_ENV === 'development' && !process.env.BUNDLE) return;
     // Early Exit: File type not allowed
@@ -109,6 +111,8 @@ class Bundle {
    * create the bundled `.css` and `.js` files in the desired `/dist` location..
    */
   async build() {
+    // Early Exit: User disabled bundling
+    if (bundle === false || bundle.enabled === false) return;
     // Get file references
     const cssGroups = this.store.bundle.css;
     const jsGroups = this.store.bundle.js;

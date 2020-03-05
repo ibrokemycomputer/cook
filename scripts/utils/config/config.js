@@ -58,6 +58,8 @@ const defaultConfig = {
   pluginPath: 'plugins',
 
   // CSS and JS Bundling
+  // NOTE: User can set `bundle: false` or `bundle: { enabled: false }` 
+  // to disable bundling for production, even if bundle attributes are found.
   bundle: {
     // Path in 'dist' directory where the bundled files will be created
     distPath: 'assets/bundle',
