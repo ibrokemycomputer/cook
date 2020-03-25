@@ -26,7 +26,8 @@
     "devPort": 3001
   },
   "dependencies": {
+    "cook": "https://github.com/ProfPowell/cook.git",
     "npm-check-updates": "4.0.1",
-    "cook": "https://github.com/ProfPowell/cook.git"
+    "request": "^2.88.2"
   }
 }

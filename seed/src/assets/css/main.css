@@ -103,6 +103,9 @@ html.is-animating.is-rendering .swup-transition-main { transform: translate3d(10
 
 /* LAYOUT
 ------------------------------ */
+
+main { flex: 1; }
+
 .inner {
   margin: 0 auto;
   max-width: 90vw;
@@ -111,11 +114,16 @@ html.is-animating.is-rendering .swup-transition-main { transform: translate3d(10
 }
 
 
+/* CONTENT
+------------------------------ */
+main img { margin-bottom: 1rem; }
+
+
 /* HEADER
 ------------------------------ */
 .header { background: #67a2b9; }
 .header .inner { padding:0.5rem 0.75rem; display:flex; justify-content:space-between; align-items:center; }
-.header .logo { width:100px; fill:#fff; }
+.header .logo { width:180px; fill:#fff; }
 .header a { color:rgba(255,255,255,1); font-weight:bold; font-size:20px; border-bottom:2px solid transparent; }
 .header a[data-active] { border-bottom-color:#fff; }
 .header a:hover { color:rgba(255,255,255,.7); }
