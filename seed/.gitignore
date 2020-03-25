@@ -1,0 +1,16 @@
+.DS_Store
+.netlify
+
+node_modules
+dist
+
+*.log
+report.*
+.firebase
+.vscode/launch.json
+
+# Firebase
+.firebase
+# Creates firebase.json, deploys, then deletes it so it doesn't persist when pushed to the repo,
+# and we don't have to .gitignore firebase.json, which would persist for the user cloning the repo.
+deploy.js

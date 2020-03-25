@@ -1,0 +1,32 @@
+{
+  "name": "cook-demo",
+  "siteName": "cook Demo",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "scripts": {
+    "build": "node --max_old_space_size=4096 node_modules/cook/scripts/build.js",
+    "build:dev": "NODE_ENV=development npm run build",
+    "build:stage": "NODE_ENV=stage npm run build",
+    "build:prod": "NODE_ENV=production npm run build",
+    "dev": "NODE_ENV=development npm run build && node node_modules/cook/scripts/dev.js",
+    "dev:prod": "NODE_ENV=production npm run build && npx http-server ./dist -p $npm_package_config_devPort",
+    "dev:bundle": "BUNDLE=true npm run dev",
+    "dev:fb": "npm run build:prod && firebase serve --only hosting --port=3000",
+    "dev:log": "LOGGER=true npm run dev",
+    "reset": "rm -rf node_modules && rm -rf package-lock.json && rm -rf dist && npm install",
+    "reset:build": "rm -rf node_modules/cook && rm -rf package-lock.json && npm install cook",
+    "reset:clean": "rm -rf node_modules && rm -rf package-lock.json && rm -rf dist",
+    "update:check": "ncu",
+    "update:fix": "ncu -u"
+  },
+  "config": {
+    "devPort": 3001
+  },
+  "dependencies": {
+    "npm-check-updates": "4.0.1",
+    "cook": "https://github.com/ProfPowell/cook.git"
+  }
+}
